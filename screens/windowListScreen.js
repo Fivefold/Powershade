@@ -15,8 +15,8 @@ import { ScrollView } from "react-native-gesture-handler";
 import colors from "../constants/colors";
 import { WindowThumbnail } from "../components/WindowThumbnail";
 import { WindowListHeader } from "../components/WindowListHeader";
-import { newWindowScreen } from "./newWindowScreen";
-import { qrScanScreen } from "./qrScanScreen";
+import { NewWindowScreen } from "./NewWindowScreen";
+import { QrScanScreen } from "./QrScanScreen";
 
 const WindowStack = createStackNavigator();
 
@@ -41,7 +41,7 @@ export function windowStackNavigator() {
       />
       <WindowStack.Screen
         name="newWindow"
-        component={newWindowScreen}
+        component={NewWindowScreen}
         options={{
           title: "Neues Fenster erstellen",
           headerRight: () => (
@@ -55,9 +55,10 @@ export function windowStackNavigator() {
           ),
         }}
       />
+
       <WindowStack.Screen
         name="qrScan"
-        component={qrScanScreen}
+        component={QrScanScreen}
         options={{
           title: "QR Code scannen",
         }}
@@ -120,12 +121,13 @@ export function windowListScreen({ navigation }) {
         style={styles.fab}
         icon="plus"
         label="Fenster"
-        onPress={() =>
-          navigation.dispatch(
-            CommonActions.navigate({
-              name: "newWindow",
-            })
-          )
+        onPress={
+          () => navigation.navigate("newWindow", { qr: "" })
+          // navigation.dispatch(
+          //   CommonActions.navigate({
+          //     name: "newWindow",
+          //   })
+          // )
         }
       />
     </View>

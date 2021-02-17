@@ -12,11 +12,11 @@ import {
 import { StyleSheet, Text, View } from "react-native";
 
 import colors from "./constants/colors";
-import { homeScreen, homeStackNavigator } from "./screens/homeScreen";
+import { homeScreen, homeStackNavigator } from "./screens/HomeScreen";
 import {
   windowListScreen,
   windowStackNavigator,
-} from "./screens/windowListScreen";
+} from "./screens/WindowListScreen";
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -57,7 +57,7 @@ export default function App() {
           />
           <Tab.Screen
             name="Gerätestatus"
-            component={windowListScreen}
+            component={windowStackNavigator}
             options={{
               tabBarIcon: "devices",
               tabBarColor: "green",

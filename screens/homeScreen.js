@@ -10,11 +10,13 @@ import {
   Divider,
   FAB,
 } from "react-native-paper";
+import { CommonActions } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
-import { windowListScreen } from "./windowListScreen";
-import { newObjectScreen } from "./newObjectScreen";
-import { CommonActions } from "@react-navigation/native";
+
+import { WindowListScreen } from "./WindowListScreen";
+import { NewObjectScreen } from "./NewObjectScreen";
+
 import colors from "../constants/colors";
 
 const HomeStack = createStackNavigator();
@@ -48,7 +50,7 @@ export function homeStackNavigator() {
     >
       <HomeStack.Screen
         name="selectObject"
-        component={homeScreen}
+        component={HomeScreen}
         options={{
           title: "Aktives Objekt auswählen",
           headerRight: () => (
@@ -69,7 +71,7 @@ export function homeStackNavigator() {
       />
       <HomeStack.Screen
         name="newObject"
-        component={newObjectScreen}
+        component={NewObjectScreen}
         options={{
           title: "Neues Objekt erstellen",
           headerRight: () => (
@@ -87,7 +89,7 @@ export function homeStackNavigator() {
   );
 }
 
-export function homeScreen({ navigation }) {
+export function HomeScreen({ navigation }) {
   const [selectedObject, setSelectedObject] = React.useState();
 
   return (
@@ -148,15 +150,6 @@ export function homeScreen({ navigation }) {
         }
       />
     </View>
-  );
-}
-
-function CustomNavigationBar({ navigation, previous }) {
-  return (
-    <Appbar.Header>
-      {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
-      <Appbar.Content title="My awesome app" />
-    </Appbar.Header>
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
+  Text,
   IconButton,
   List,
   TextInput,
@@ -19,13 +20,12 @@ import { WindowDimInput } from "../components/WindowDimInput";
 import { SensorPosInput } from "../components/SensorPosInput";
 import { DisabledTextInput } from "../components/DisabledTextInput";
 
-export function newWindowScreen({ route, navigation }) {
+export function NewWindowScreen({ route, navigation }) {
   const [windowWidth, setWindowWidth] = React.useState("50");
   const [windowHeight, setWindowHeight] = React.useState("50");
   const [sensorCorner, setSensorCorner] = React.useState("upperLeft");
   const [sensorPosH, setSensorPosH] = React.useState("10");
   const [sensorPosV, setSensorPosV] = React.useState("10");
-  const [qrCode, setQrCode] = React.useState("");
 
   return (
     <ScrollView>
@@ -104,7 +104,7 @@ export function newWindowScreen({ route, navigation }) {
         <View style={styles.qrRow}>
           <DisabledTextInput
             label="QR-Kennung"
-            value={JSON.stringify(route.qr)}
+            value={route.params.qr.data}
             mode="outlined"
             style={styles.qrInput}
           />
@@ -113,13 +113,7 @@ export function newWindowScreen({ route, navigation }) {
             size={38}
             color={colors.white.high_emph}
             style={styles.qrButton}
-            onPress={() =>
-              navigation.dispatch(
-                CommonActions.navigate({
-                  name: "qrScan",
-                })
-              )
-            }
+            onPress={() => navigation.navigate("qrScan")}
           />
         </View>
         <CustomTextInput

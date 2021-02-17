@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 
 import { CustomTextInput } from "../components/CustomTextInput";
 
-export function newObjectScreen() {
+export function NewObjectScreen() {
   return (
     <View style={styles.container}>
       <CustomTextInput
