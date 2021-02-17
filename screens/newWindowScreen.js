@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
   IconButton,
@@ -17,13 +17,15 @@ import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
 import { WindowDimInput } from "../components/WindowDimInput";
 import { SensorPosInput } from "../components/SensorPosInput";
+import { DisabledTextInput } from "../components/DisabledTextInput";
 
-export function newWindowScreen({ navigation }) {
+export function newWindowScreen({ route, navigation }) {
   const [windowWidth, setWindowWidth] = React.useState("50");
   const [windowHeight, setWindowHeight] = React.useState("50");
   const [sensorCorner, setSensorCorner] = React.useState("upperLeft");
-  const [sensorPosH, setSensorPosH] = React.useState("5");
-  const [sensorPosV, setSensorPosV] = React.useState("5");
+  const [sensorPosH, setSensorPosH] = React.useState("10");
+  const [sensorPosV, setSensorPosV] = React.useState("10");
+  const [qrCode, setQrCode] = React.useState("");
 
   return (
     <ScrollView>
@@ -36,7 +38,7 @@ export function newWindowScreen({ navigation }) {
           )}
           theme={{ colors: { text: colors.white.high_emph } }}
         />
-        <WindowNameInput label="Raum-/Fenstername" value="" />
+        <WindowNameInput label="Raum-/Fenstername" />
         <View style={styles.measurementContainer}>
           <Caption style={{ color: colors.white.high_emph }}>
             MESSUNGSSTATUS
@@ -84,6 +86,7 @@ export function newWindowScreen({ navigation }) {
             label="horizontal"
             mode="outlined"
             keyboardType="number-pad"
+            initialValue={sensorPosH}
             setSensorPos={setSensorPosH}
             style={styles.fullTextInput}
             right={<TextInput.Affix text="cm" />}
@@ -92,17 +95,17 @@ export function newWindowScreen({ navigation }) {
             label="vertikal"
             mode="outlined"
             keyboardType="number-pad"
+            initialValue={sensorPosV}
             setSensorPos={setSensorPosV}
             style={styles.fullTextInput}
             right={<TextInput.Affix text="cm" />}
           />
         </View>
         <View style={styles.qrRow}>
-          <CustomTextInput
+          <DisabledTextInput
             label="QR-Kennung"
-            value=""
+            value={JSON.stringify(route.qr)}
             mode="outlined"
-            disabled="true"
             style={styles.qrInput}
           />
           <IconButton
@@ -121,7 +124,6 @@ export function newWindowScreen({ navigation }) {
         </View>
         <CustomTextInput
           label="Anmerkungen"
-          value=""
           mode="outlined"
           multiline={true}
           style={styles.fullTextInput}

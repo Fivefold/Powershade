@@ -14,21 +14,21 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
 import { windowListScreen } from "./windowListScreen";
 import { newObjectScreen } from "./newObjectScreen";
-import { CommonActions, TabActions } from "@react-navigation/native";
+import { CommonActions } from "@react-navigation/native";
 import colors from "../constants/colors";
 
 const HomeStack = createStackNavigator();
 const StatusBarHeight = 20;
 
-const ObjectRadioButton = () => {
-  const [checked, setChecked] = React.useState("first");
+const ObjectRadioButton = (props) => {
+  const [checked, setChecked] = React.useState(false);
 
   return (
     <View style={styles.objectRadioButton}>
       <RadioButton
-        value="second"
-        status={checked === "second" ? "checked" : "unchecked"}
-        onPress={() => setChecked("second")}
+        value={props.id}
+        status={props.selectedObject === props.id ? "checked" : "unchecked"}
+        onPress={() => props.setSelectedObject(props.id)}
       />
     </View>
   );
@@ -88,6 +88,8 @@ export function homeStackNavigator() {
 }
 
 export function homeScreen({ navigation }) {
+  const [selectedObject, setSelectedObject] = React.useState();
+
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -96,13 +98,25 @@ export function homeScreen({ navigation }) {
           description="Musterstraße 12, 1234 Musterstadt"
           style={styles.listEntry}
           onPress={() => console.log("Pressed List item")}
-          right={() => <ObjectRadioButton />}
+          right={() => (
+            <ObjectRadioButton
+              id={1}
+              selectedObject={selectedObject}
+              setSelectedObject={setSelectedObject}
+            />
+          )}
         />
         <Divider />
         <List.Item
           title="HELLA Sonnen- und Wetterschutztechnik GmbH"
           description="Abfaltersbach 125, 9913 Abfaltersbach"
-          right={() => <ObjectRadioButton />}
+          right={() => (
+            <ObjectRadioButton
+              id={2}
+              selectedObject={selectedObject}
+              setSelectedObject={setSelectedObject}
+            />
+          )}
         />
         <Divider />
         <List.Item
@@ -110,7 +124,13 @@ export function homeScreen({ navigation }) {
           description="HELLA Sonnen- und Wetterschutztechnik GmbH HELLA Sonnen- und Wetterschutztechnik GmbH"
           titleEllipsizeMode="tail"
           descriptionEllipsizeMode="tail"
-          right={() => <ObjectRadioButton />}
+          right={() => (
+            <ObjectRadioButton
+              id={3}
+              selectedObject={selectedObject}
+              setSelectedObject={setSelectedObject}
+            />
+          )}
         />
         <Divider />
       </ScrollView>

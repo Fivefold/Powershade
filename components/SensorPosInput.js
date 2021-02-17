@@ -2,20 +2,14 @@ import React from "react";
 import { TextInput } from "react-native-paper";
 
 export const SensorPosInput = (props) => {
-  const [text, setText] = React.useState("");
+  const [text, setText] = React.useState(props.initialValue);
 
   return (
     <TextInput
-      label={props.label}
+      {...props}
       value={text}
-      mode={props.mode}
-      right={props.right}
-      onBlur={props.onBlur}
-      placeholder={props.placeholder}
-      keyboardType={props.keyboardType}
       onChangeText={(text) => setText(text)}
       onBlur={() => props.setSensorPos(text)}
-      style={props.style}
     />
   );
 };

@@ -6,16 +6,9 @@ export const WindowDimInput = (props) => {
 
   return (
     <TextInput
-      label={props.label}
-      value={text}
-      mode={props.mode}
-      right={props.right}
-      onBlur={props.onBlur}
-      placeholder={props.placeholder}
-      keyboardType={props.keyboardType}
+      {...props}
       onChangeText={(text) => setText(text)}
       onBlur={() => props.setWindowDim(Number(text))}
-      style={props.style}
     />
   );
 };

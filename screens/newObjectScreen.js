@@ -8,33 +8,28 @@ export function newObjectScreen() {
     <View style={styles.container}>
       <CustomTextInput
         label="Kunde"
-        value=""
         mode="outlined"
         style={styles.fullTextInput}
       />
       <CustomTextInput
         label="Straße"
-        value=""
         mode="outlined"
         style={styles.wideTextInput}
       />
       <CustomTextInput
         label="Nr."
-        value=""
         mode="outlined"
         keyboardType="number-pad"
         style={styles.smallTextInput}
       />
       <CustomTextInput
         label="PLZ"
-        value=""
         mode="outlined"
         keyboardType="number-pad"
         style={styles.smallTextInput}
       />
       <CustomTextInput
         label="Stadt"
-        value=""
         mode="outlined"
         style={styles.wideTextInput}
       />
