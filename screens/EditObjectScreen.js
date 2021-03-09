@@ -4,46 +4,60 @@ import { FAB } from "react-native-paper";
 
 import { CustomTextInput } from "../components/CustomTextInput";
 
-export function NewObjectScreen() {
+export function EditObjectScreen({ navigation }) {
+  const [editMode, setEditMode] = React.useState(false);
+
+  function toggleEditMode() {
+    editMode ? setEditMode(false) : setEditMode(true);
+  }
+
   return (
     <View style={styles.container}>
       <CustomTextInput
+        disabled={!editMode}
         label="Kunde"
+        value="Max Mustermann"
         mode="outlined"
         style={styles.fullTextInput}
       />
       <CustomTextInput
+        disabled={!editMode}
         label="Straße"
+        value="Musterstraße"
         mode="outlined"
         style={styles.wideTextInput}
       />
       <CustomTextInput
+        disabled={!editMode}
         label="Nr."
+        value="12"
         mode="outlined"
         keyboardType="number-pad"
         style={styles.smallTextInput}
       />
       <CustomTextInput
+        disabled={!editMode}
         label="PLZ"
+        value="1234"
         mode="outlined"
         keyboardType="number-pad"
         style={styles.smallTextInput}
       />
       <CustomTextInput
+        disabled={!editMode}
         label="Stadt"
+        value="Musterstadt"
         mode="outlined"
         style={styles.wideTextInput}
       />
       <FAB
         style={styles.fab}
-        icon="content-save"
-        label="Speichern"
-        onPress={() =>
-          navigation.dispatch(
-            CommonActions.navigate({
-              name: "Home",
-            })
-          )
+        icon={editMode ? "content-save" : "pencil"}
+        label={editMode ? "Speichern" : "Bearbeiten"}
+        onPress={
+          editMode
+            ? () => toggleEditMode() //
+            : () => toggleEditMode()
         }
       />
     </View>

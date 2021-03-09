@@ -110,25 +110,78 @@ export function windowListScreen({ navigation }) {
         <Divider />
         <List.Item
           title="Top 1 Wohnzimmer 3"
-          description="50 x 100 cm - Höhe: 2,42 m"
+          description="0 x 0 cm - Höhe: 2,42 m"
           onPress={() => console.log("Pressed List item")}
-          right={() => <WindowThumbnail width={50} height={100} />}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
         />
         <Divider />
+        <List.Item
+          title="Top 1 Wohnzimmer 3"
+          description="0 x 0 cm - Höhe: 2,42 m"
+          onPress={() => console.log("Pressed List item")}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
+        />
+        <List.Item
+          title="Top 1 Wohnzimmer 3"
+          description="0 x 0 cm - Höhe: 2,42 m"
+          onPress={() => console.log("Pressed List item")}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
+        />
+        <List.Item
+          title="Top 1 Wohnzimmer 3"
+          description="0 x 0 cm - Höhe: 2,42 m"
+          onPress={() => console.log("Pressed List item")}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
+        />
+        <List.Item
+          title="Top 1 Wohnzimmer 3"
+          description="0 x 0 cm - Höhe: 2,42 m"
+          onPress={() => console.log("Pressed List item")}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
+        />
+        <List.Item
+          title="Top 1 Wohnzimmer 3"
+          description="0 x 0 cm - Höhe: 2,42 m"
+          onPress={() => console.log("Pressed List item")}
+          right={() => (
+            <WindowThumbnail
+              width={Math.random() + 0.3}
+              height={Math.random() + 0.3}
+            />
+          )}
+        />
       </ScrollView>
 
       <FAB
         style={styles.fab}
         icon="plus"
         label="Fenster"
-        onPress={
-          () => navigation.navigate("newWindow", { qr: "" })
-          // navigation.dispatch(
-          //   CommonActions.navigate({
-          //     name: "newWindow",
-          //   })
-          // )
-        }
+        onPress={() => navigation.navigate("newWindow", { qr: "" })}
       />
     </View>
   );

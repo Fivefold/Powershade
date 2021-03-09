@@ -19,7 +19,7 @@ export function QrScanScreen({ route, navigation }) {
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    alert("Scan erfolgreich! \n\n Barcode-Typ: " + type + "\n Inhalt: " + data);
+    //alert("Scan erfolgreich! \n\n Barcode-Typ: " + type + "\n Inhalt: " + data);
     navigation.navigate("newWindow", { qr: { data } });
   };
 

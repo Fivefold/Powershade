@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import * as SQLite from "expo-sqlite";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
 import {
   Provider as PaperProvider,
@@ -17,7 +18,9 @@ import {
   windowListScreen,
   windowStackNavigator,
 } from "./screens/WindowListScreen";
+import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
 
+const db = SQLite.openDatabase("sqlite.db");
 const Tab = createMaterialBottomTabNavigator();
 
 export const theme = {
@@ -31,6 +34,45 @@ export const theme = {
 };
 
 export default function App() {
+  React.useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS projects (
+          id INTEGER PRIMARY KEY NOT null, 
+          customer TEXT, 
+          street TEXT,
+          number TEXT,
+          zip INTEGER,
+          city TEXT
+        );`
+      );
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS windows (
+          id INTEGER PRIMARY KEY NOT null, 
+          project INTEGER,
+          name TEXT, 
+          width REAL,
+          height REAL,
+          lat REAL,
+          long REAL,
+          z_height REAL,
+          azimuth REAL,
+          angle REAL,
+          qr TEXT,
+          annotations TEXT
+        );`
+      );
+      /*tx.executeSql(
+        `INSERT INTO projects (customer, street, number, zip, city) VALUES
+          ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
+          ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`
+      );*/
+      tx.executeSql("select * from projects", [], (_, { rows }) =>
+        console.log(JSON.stringify(rows))
+      );
+    });
+  }, []);
+
   return (
     <PaperProvider theme={theme}>
       <StatusBar style="light" />
@@ -43,7 +85,6 @@ export default function App() {
             component={homeStackNavigator}
             options={{
               tabBarIcon: "home-account",
-              tabBarColor: "164D93",
             }}
           />
           <Tab.Screen
@@ -51,13 +92,11 @@ export default function App() {
             component={windowStackNavigator}
             options={{
               tabBarIcon: "application",
-              tabBarBadge: 4,
-              tabBarColor: "red",
             }}
           />
           <Tab.Screen
             name="Gerätestatus"
-            component={windowStackNavigator}
+            component={DeviceStatusScreen}
             options={{
               tabBarIcon: "devices",
               tabBarColor: "green",

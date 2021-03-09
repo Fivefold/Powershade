@@ -33,7 +33,7 @@ export function WindowListHeader({ navigation, previous }) {
             )}
             theme={{ colors: { text: colors.white.high_emph } }}
           />
-          <Text style={styles.numberOfWin}>4 Fenster</Text>
+          <Text style={styles.numberOfWin}>9 Fenster</Text>
         </View>
       }
     </Appbar.Header>

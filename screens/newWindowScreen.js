@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Subheading,
   Caption,
+  FAB,
+  Button,
 } from "react-native-paper";
 import { CommonActions } from "@react-navigation/native";
 
@@ -28,102 +30,115 @@ export function NewWindowScreen({ route, navigation }) {
   const [sensorPosV, setSensorPosV] = React.useState("10");
 
   return (
-    <ScrollView>
-      <View style={styles.headerContainer}>
-        <List.Item
-          title="Max Mustermann"
-          description="Musterstraße 12, 1234 Musterstadt"
-          left={() => (
-            <List.Icon icon="home-account" color={colors.white.high_emph} />
-          )}
-          theme={{ colors: { text: colors.white.high_emph } }}
-        />
-        <WindowNameInput label="Raum-/Fenstername" />
-        <View style={styles.measurementContainer}>
-          <Caption style={{ color: colors.white.high_emph }}>
-            MESSUNGSSTATUS
-          </Caption>
-          <View style={styles.measurementResults}>
-            <ActivityIndicator animating={true} color={colors.secondary._600} />
-            <Subheading style={[styles.measurementText]}>
-              Warte auf Messergebnis...
-            </Subheading>
+    <View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+        <View style={styles.headerContainer}>
+          <List.Item
+            title="Max Mustermann"
+            description="Musterstraße 12, 1234 Musterstadt"
+            left={() => (
+              <List.Icon icon="home-account" color={colors.white.high_emph} />
+            )}
+            theme={{ colors: { text: colors.white.high_emph } }}
+          />
+          <WindowNameInput label="Raum-/Fenstername" />
+          <View style={styles.measurementContainer}>
+            <Caption style={{ color: colors.white.high_emph }}>
+              MESSUNGSSTATUS
+            </Caption>
+            <View style={styles.measurementResults}>
+              <ActivityIndicator
+                animating={true}
+                color={colors.secondary._600}
+              />
+              <Subheading style={[styles.measurementText]}>
+                Warte auf Messergebnis...
+              </Subheading>
+            </View>
           </View>
         </View>
-      </View>
-      <View style={styles.dimContainer}>
-        <Caption style={styles.dimCaption}>FENSTERABMESSUNGEN</Caption>
-        <WindowDimInput
-          label="Breite"
-          mode="outlined"
-          keyboardType="number-pad"
-          setWindowDim={setWindowWidth}
-          style={styles.halfTextInput}
-          right={<TextInput.Affix text="cm" />}
-        />
-        <WindowDimInput
-          label="Höhe"
-          mode="outlined"
-          keyboardType="number-pad"
-          setWindowDim={setWindowHeight}
-          style={styles.halfTextInput}
-          right={<TextInput.Affix text="cm" />}
-        />
-        <WindowPreview
-          width={windowWidth}
-          height={windowHeight}
-          sensorPosH={sensorPosH}
-          sensorPosV={sensorPosV}
-          sensorCorner={sensorCorner}
-        />
-        <View style={styles.sensorContainer}>
-          <Caption style={styles.dimCaption}>SENSORPOSITION</Caption>
-          <SensorPositionToggle
-            value={sensorCorner}
-            setSensorCorner={setSensorCorner}
-          />
-          <SensorPosInput
-            label="horizontal"
+        <View style={styles.dimContainer}>
+          <Caption style={styles.dimCaption}>FENSTERABMESSUNGEN</Caption>
+          <WindowDimInput
+            label="Breite"
             mode="outlined"
             keyboardType="number-pad"
-            initialValue={sensorPosH}
-            setSensorPos={setSensorPosH}
-            style={styles.fullTextInput}
+            setWindowDim={setWindowWidth}
+            style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
-          <SensorPosInput
-            label="vertikal"
+          <WindowDimInput
+            label="Höhe"
             mode="outlined"
             keyboardType="number-pad"
-            initialValue={sensorPosV}
-            setSensorPos={setSensorPosV}
-            style={styles.fullTextInput}
+            setWindowDim={setWindowHeight}
+            style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
-        </View>
-        <View style={styles.qrRow}>
-          <DisabledTextInput
-            label="QR-Kennung"
-            value={route.params.qr.data}
+          <WindowPreview
+            width={windowWidth}
+            height={windowHeight}
+            sensorPosH={sensorPosH}
+            sensorPosV={sensorPosV}
+            sensorCorner={sensorCorner}
+          />
+          <View style={styles.sensorContainer}>
+            <Caption style={styles.dimCaption}>SENSORPOSITION</Caption>
+            <SensorPositionToggle
+              value={sensorCorner}
+              setSensorCorner={setSensorCorner}
+            />
+            <SensorPosInput
+              label="horizontal"
+              mode="outlined"
+              keyboardType="number-pad"
+              initialValue={sensorPosH}
+              setSensorPos={setSensorPosH}
+              style={styles.fullTextInput}
+              right={<TextInput.Affix text="cm" />}
+            />
+            <SensorPosInput
+              label="vertikal"
+              mode="outlined"
+              keyboardType="number-pad"
+              initialValue={sensorPosV}
+              setSensorPos={setSensorPosV}
+              style={styles.fullTextInput}
+              right={<TextInput.Affix text="cm" />}
+            />
+          </View>
+          <View style={styles.qrRow}>
+            <IconButton
+              icon="qrcode-scan"
+              size={38.5}
+              color={colors.white.high_emph}
+              style={styles.qrButton}
+              onPress={() => navigation.navigate("qrScan")}
+            />
+            <DisabledTextInput
+              label="QR-Kennung"
+              value={route.params.qr.data}
+              mode="outlined"
+              style={styles.qrInput}
+            />
+          </View>
+          <CustomTextInput
+            label="Anmerkungen"
             mode="outlined"
-            style={styles.qrInput}
-          />
-          <IconButton
-            icon="qrcode-scan"
-            size={38}
-            color={colors.white.high_emph}
-            style={styles.qrButton}
-            onPress={() => navigation.navigate("qrScan")}
+            multiline={true}
+            style={styles.fullTextInput}
           />
         </View>
-        <CustomTextInput
-          label="Anmerkungen"
-          mode="outlined"
-          multiline={true}
-          style={styles.fullTextInput}
+      </ScrollView>
+      <View style={styles.fabView}>
+        <FAB
+          style={styles.fab}
+          icon="content-save"
+          label="Speichern"
+          onPress={() => console.log("Pressed save item")}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -188,12 +203,13 @@ const styles = StyleSheet.create({
   },
   qrInput: {
     flexGrow: 1,
-    //marginRight: -10,
+    marginLeft: -12,
   },
   qrButton: {
     backgroundColor: colors.primary._800,
     borderRadius: 5,
     elevation: 4,
+    marginLeft: 0,
   },
   // --- Sensor ---
   sensorContainer: {
@@ -203,5 +219,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginLeft: "5%",
     //backgroundColor: "grey",
+  },
+  fabView: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fab: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    margin: 16,
   },
 });
