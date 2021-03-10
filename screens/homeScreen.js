@@ -29,7 +29,7 @@ const StatusBarHeight = 20;
 export function homeStackNavigator() {
   return (
     <HomeStack.Navigator
-      initialRouteName="Home"
+      initialRouteName="selectObject"
       screenOptions={{
         headerStyle: {
           backgroundColor: colors.primary._800,
@@ -114,6 +114,15 @@ function Projects() {
     });
   }, []);
 
+  const updateProjects = () => {
+    db.transaction(
+      (tx) => {},
+      (t, error) => {
+        console.log(error);
+      }
+    );
+  };
+
   if (projects === null || projects.length === 0) {
     return <Text>Keine Projekte angelegt</Text>;
   }
@@ -136,9 +145,28 @@ function Projects() {
           )}
           right={() => (
             <View style={{ justifyContent: "center" }}>
-              <IconButton
+              {/*<IconButton
                 icon="pencil"
                 onPress={() => navigation.navigate("editObject")}
+                color={colors.black.medium_high_emph}
+              />*/}
+              <IconButton
+                icon="delete"
+                onPress={() => {
+                  db.transaction(
+                    (tx) => {
+                      tx.executeSql(`DELETE FROM projects WHERE id = ?`, [id]);
+                      tx.executeSql(
+                        `select id, customer, street, number, zip, city from projects;`,
+                        [],
+                        (_, { rows: { _array } }) => setProjects(_array)
+                      );
+                    },
+                    (t, error) => {
+                      console.log(error);
+                    }
+                  );
+                }}
                 color={colors.black.medium_high_emph}
               />
             </View>
@@ -156,7 +184,7 @@ export function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <Projects />
+        <Projects navigation={navigation} />
         {/*<List.Item
           title="HELLA Sonnen- und Wetterschutztechnik GmbH"
           description="Abfaltersbach 125, 9913 Abfaltersbach"

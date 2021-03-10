@@ -62,6 +62,7 @@ export default function App() {
           annotations TEXT
         );`
       );
+      //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
       /*tx.executeSql(
         `INSERT INTO projects (customer, street, number, zip, city) VALUES
           ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
