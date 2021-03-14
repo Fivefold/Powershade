@@ -19,9 +19,10 @@ import { WindowListScreen } from "./WindowListScreen";
 import { NewObjectScreen } from "./NewObjectScreen";
 import { EditObjectScreen } from "./EditObjectScreen";
 
-const db = SQLite.openDatabase("sqlite.db");
+const db = SQLite.openDatabase("test.db");
 
 import colors from "../constants/colors";
+import { roundToNearestPixel } from "react-native/Libraries/Utilities/PixelRatio";
 
 const HomeStack = createStackNavigator();
 const StatusBarHeight = 20;
@@ -104,6 +105,11 @@ function Projects() {
   const [projects, setProjects] = React.useState(null);
   const [selectedObject, setSelectedObject] = React.useState();
 
+  /*if (route.params.qr.data == null) {
+  } else {
+    console.log("route params not null!");
+  }*/
+
   React.useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -112,7 +118,7 @@ function Projects() {
         (_, { rows: { _array } }) => setProjects(_array)
       );
     });
-  }, []);
+  });
 
   const updateProjects = () => {
     db.transaction(
@@ -178,59 +184,14 @@ function Projects() {
   );
 }
 
-export function HomeScreen({ navigation }) {
+export function HomeScreen({ route, navigation }) {
   //const [selectedObject, setSelectedObject] = React.useState();
+  const [test, setTest] = React.useState(false);
 
   return (
     <View style={styles.container}>
       <ScrollView>
         <Projects navigation={navigation} />
-        {/*<List.Item
-          title="HELLA Sonnen- und Wetterschutztechnik GmbH"
-          description="Abfaltersbach 125, 9913 Abfaltersbach"
-          descriptionEllipsizeMode="tail"
-          onPress={() => setSelectedObject(2)}
-          left={() => (
-            <ObjectRadioButton
-              id={2}
-              selectedObject={selectedObject}
-              setSelectedObject={setSelectedObject}
-            />
-          )}
-          right={() => (
-            <View style={{ justifyContent: "center" }}>
-              <IconButton
-                icon="pencil"
-                onPress={() => navigation.navigate("editObject")}
-                color={colors.black.medium_high_emph}
-              />
-            </View>
-          )}
-        />
-        <Divider />
-        <List.Item
-          title="HELLA Sonnen- und Wetterschutztechnik GmbH Max Mustermann"
-          description="HELLA Sonnen- und Wetterschutztechnik lange lange Adresse GmbH"
-          onPress={() => setSelectedObject(3)}
-          descriptionEllipsizeMode="tail"
-          left={() => (
-            <ObjectRadioButton
-              id={3}
-              selectedObject={selectedObject}
-              setSelectedObject={setSelectedObject}
-            />
-          )}
-          right={() => (
-            <View style={{ justifyContent: "center" }}>
-              <IconButton
-                icon="pencil"
-                onPress={() => navigation.navigate("editObject")}
-                color={colors.black.medium_high_emph}
-              />
-            </View>
-          )}
-        />
-        <Divider />*/}
       </ScrollView>
 
       <FAB

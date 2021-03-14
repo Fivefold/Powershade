@@ -4,7 +4,7 @@ import { CommonActions } from "@react-navigation/native";
 import { FAB } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabase("sqlite.db");
+const db = SQLite.openDatabase("test.db");
 
 import { CustomTextInput } from "../components/CustomTextInput";
 
@@ -84,9 +84,7 @@ export function NewObjectScreen({ navigation }) {
         onPress={() => {
           console.log(values);
           add();
-          navigation.navigate({
-            name: "selectObject",
-          });
+          navigation.navigate("selectObject", { newProject: { values } });
         }}
       />
     </View>

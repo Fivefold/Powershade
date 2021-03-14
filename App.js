@@ -20,7 +20,7 @@ import {
 } from "./screens/WindowListScreen";
 import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
 
-const db = SQLite.openDatabase("sqlite.db");
+export const db = SQLite.openDatabase("test.db");
 const Tab = createMaterialBottomTabNavigator();
 
 export const theme = {
@@ -35,17 +35,23 @@ export const theme = {
 
 export default function App() {
   React.useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS projects (
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `CREATE TABLE IF NOT EXISTS projects (
           id INTEGER PRIMARY KEY NOT null, 
           customer TEXT, 
           street TEXT,
           number TEXT,
           zip INTEGER,
           city TEXT
-        );`
-      );
+        );`,
+          [],
+          console.log("create table success"),
+          (t, error) => {
+            console.log(error);
+          }
+        ); /*
       tx.executeSql(
         `CREATE TABLE IF NOT EXISTS windows (
           id INTEGER PRIMARY KEY NOT null, 
@@ -62,17 +68,52 @@ export default function App() {
           annotations TEXT
         );`
       );
-      //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
-      /*tx.executeSql(
-        `INSERT INTO projects (customer, street, number, zip, city) VALUES
-          ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
-          ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS settings (
+          id INTEGER PRIMARY KEY NOT null, 
+          key TEXT,
+          value INTEGER, 
+        );`
       );*/
-      tx.executeSql("select * from projects", [], (_, { rows }) =>
-        console.log(JSON.stringify(rows))
+        //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
+
+        /*tx.executeSql(
+          `INSERT INTO projects (customer, street, number, zip, city) VALUES
+          ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
+          ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`,
+          [],
+          null,
+          (t, error) => {
+            console.log(error);
+          }
+        );*/
+
+        tx.executeSql(
+          "select * from projects",
+          [],
+          (_, { rows }) => console.log(JSON.stringify(rows)),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (error) => console.log(error),
+      console.log("create table transaction success")
+    );
+  }, []);
+
+  /*React.useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "select * from projects",
+        [],
+        (_, { rows }) => console.log(JSON.stringify(rows)),
+        (t, error) => {
+          console.log(error);
+        }
       );
     });
-  }, []);
+  }, []);*/
 
   return (
     <PaperProvider theme={theme}>
