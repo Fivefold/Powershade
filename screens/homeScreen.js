@@ -95,7 +95,7 @@ const ObjectRadioButton = (props) => {
       <RadioButton
         value={props.id}
         status={props.selectedObject === props.id ? "checked" : "unchecked"}
-        onPress={() => props.setSelectedObject(props.id)}
+        onPress={() => setActiveProject(props.id)}
       />
     </View>
   );
@@ -105,29 +105,51 @@ function Projects() {
   const [projects, setProjects] = React.useState(null);
   const [selectedObject, setSelectedObject] = React.useState();
 
-  /*if (route.params.qr.data == null) {
-  } else {
-    console.log("route params not null!");
-  }*/
+  const setActiveProject = (id) => {
+    setSelectedObject(id);
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `UPDATE settings SET value = ? WHERE key = 'active_project';`,
+          [id],
+          (_, { rowsAffected }) => {
+            if (rowsAffected == 0)
+              tx.executeSql(
+                `INSERT INTO settings (key, value) VALUES ('active_project',?);`,
+                [id]
+              );
+          }
+        );
+      },
+      (t) => console.log("setActiveProject: " + t)
+    );
+  };
+
+  React.useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `SELECT value FROM settings WHERE key = "active_project";`,
+        [],
+        (_, { rows: { _array } }) => setActiveProject(_array[0].value),
+        (t, error) => {
+          console.log(error);
+        }
+      );
+    });
+  }, []);
 
   React.useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
         `select id, customer, street, number, zip, city from projects;`,
         [],
-        (_, { rows: { _array } }) => setProjects(_array)
+        (_, { rows: { _array } }) => setProjects(_array),
+        (t, error) => {
+          console.log(error);
+        }
       );
     });
   });
-
-  const updateProjects = () => {
-    db.transaction(
-      (tx) => {},
-      (t, error) => {
-        console.log(error);
-      }
-    );
-  };
 
   if (projects === null || projects.length === 0) {
     return <Text>Keine Projekte angelegt</Text>;
@@ -141,13 +163,9 @@ function Projects() {
           title={customer}
           description={`${street} ${number}, ${zip} ${city}`}
           descriptionEllipsizeMode="tail"
-          onPress={() => setSelectedObject(id)}
+          onPress={() => setActiveProject(id)}
           left={() => (
-            <ObjectRadioButton
-              id={id}
-              selectedObject={selectedObject}
-              setSelectedObject={setSelectedObject}
-            />
+            <ObjectRadioButton id={id} selectedObject={selectedObject} />
           )}
           right={() => (
             <View style={{ justifyContent: "center" }}>
@@ -186,7 +204,6 @@ function Projects() {
 
 export function HomeScreen({ route, navigation }) {
   //const [selectedObject, setSelectedObject] = React.useState();
-  const [test, setTest] = React.useState(false);
 
   return (
     <View style={styles.container}>
