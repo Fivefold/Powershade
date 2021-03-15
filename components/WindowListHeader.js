@@ -1,10 +1,91 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Appbar, IconButton, List, Menu } from "react-native-paper";
+import * as SQLite from "expo-sqlite";
 
 import colors from "../constants/colors";
 
+const db = SQLite.openDatabase("test.db");
+
+function ActiveProject() {
+  const [activeProject, setActiveProject] = React.useState(null);
+
+  React.useEffect(() => {
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT 
+        id, customer, street, number, zip, city 
+        FROM projects
+        WHERE EXISTS (SELECT 1 FROM settings 
+          WHERE 
+            projects.id = settings.value 
+            AND 
+            settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => {
+            setActiveProject(_array);
+            //console.log("window list header: " + JSON.stringify(_array));
+          },
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (t) => console.log("query active project in window list header: " + t)
+    );
+  });
+
+  if (activeProject === null || activeProject.length === 0) {
+    console.log("no project active");
+    return <Text>Keine Projekte angelegt</Text>;
+  }
+
+  return (
+    <View style={{ width: "100%" }}>
+      {activeProject.map(({ id, customer, street, number, zip, city }) => (
+        <View key={id} style={{ width: "100%" }}>
+          <List.Item
+            title={customer}
+            description={`${street} ${number}, ${zip} ${city}`}
+            left={() => (
+              <List.Icon icon="home-account" color={colors.white.high_emph} />
+            )}
+            theme={{ colors: { text: colors.white.high_emph } }}
+          />
+          <Text style={styles.numberOfWin}>9 Fenster</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function WindowListHeader({ navigation, previous }) {
+  const [activeProject, setActiveProject] = React.useState(null);
+
+  React.useEffect(() => {
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT 
+        id, customer, street, number, zip, city 
+        FROM projects
+        WHERE EXISTS (SELECT 1 FROM settings 
+          WHERE 
+            projects.id = settings.value 
+            AND 
+            settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => setActiveProject(_array),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (t) => console.log("query active project in window list header: " + t)
+    );
+  }, []);
+
   return (
     <Appbar.Header style={styles.appbar}>
       {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
@@ -23,19 +104,7 @@ export function WindowListHeader({ navigation, previous }) {
           />
         </View>
       }
-      {
-        <View style={{ width: "100%" }}>
-          <List.Item
-            title="Max Mustermann"
-            description="Musterstraße 12, 1234 Musterstadt"
-            left={() => (
-              <List.Icon icon="home-account" color={colors.white.high_emph} />
-            )}
-            theme={{ colors: { text: colors.white.high_emph } }}
-          />
-          <Text style={styles.numberOfWin}>9 Fenster</Text>
-        </View>
-      }
+      <ActiveProject />
     </Appbar.Header>
   );
 }

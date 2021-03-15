@@ -39,42 +39,42 @@ export default function App() {
       (tx) => {
         tx.executeSql(
           `CREATE TABLE IF NOT EXISTS projects (
-          id INTEGER PRIMARY KEY NOT null, 
-          customer TEXT, 
-          street TEXT,
-          number TEXT,
-          zip INTEGER,
-          city TEXT
-        );`,
+            id INTEGER PRIMARY KEY NOT null, 
+            customer TEXT, 
+            street TEXT,
+            number TEXT,
+            zip INTEGER,
+            city TEXT
+          );`,
           [],
           console.log("create table success"),
           (t, error) => {
             console.log(error);
           }
-        ); /*
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS windows (
-          id INTEGER PRIMARY KEY NOT null, 
-          project INTEGER,
-          name TEXT, 
-          width REAL,
-          height REAL,
-          lat REAL,
-          long REAL,
-          z_height REAL,
-          azimuth REAL,
-          angle REAL,
-          qr TEXT,
-          annotations TEXT
-        );`
-      );
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS settings (
-          id INTEGER PRIMARY KEY NOT null, 
-          key TEXT,
-          value INTEGER, 
-        );`
-      );*/
+        );
+        tx.executeSql(
+          `CREATE TABLE IF NOT EXISTS windows (
+            id INTEGER PRIMARY KEY NOT null, 
+            project INTEGER,
+            name TEXT, 
+            width REAL,
+            height REAL,
+            lat REAL,
+            long REAL,
+            z_height REAL,
+            azimuth REAL,
+            angle REAL,
+            qr TEXT,
+            annotations TEXT
+          );`
+        );
+        tx.executeSql(
+          `CREATE TABLE IF NOT EXISTS settings (
+            id INTEGER PRIMARY KEY NOT null, 
+            key TEXT,
+            value INTEGER 
+          );`
+        );
         //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
 
         /*tx.executeSql(
@@ -88,10 +88,39 @@ export default function App() {
           }
         );*/
 
+        /*tx.executeSql(
+          `INSERT INTO windows (project, name, width, height, z_height) VALUES
+          (1,"Wohnzimmer 1", 100, 120.5, 2.43),
+          (1,"Wohnzimmer 2", 100, 120.5, 2.43),
+          (1,"Schlafzimmer", 80, 100, 2.41),
+          (2,"Küche", 50, 50.5, 2.40);`,
+          [],
+          null,
+          (t, error) => {
+            console.log(error);
+          }
+        );*/
+
         tx.executeSql(
           "select * from projects",
           [],
           (_, { rows }) => console.log(JSON.stringify(rows)),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+        tx.executeSql(
+          "select * from settings",
+          [],
+          (_, { rows }) => console.log(JSON.stringify(rows)),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+        tx.executeSql(
+          `SELECT value FROM settings WHERE key = "active_project";`,
+          [],
+          (_, { rows: { _array } }) => console.log(_array),
           (t, error) => {
             console.log(error);
           }

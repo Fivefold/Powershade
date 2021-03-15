@@ -11,6 +11,7 @@ import {
 import { createStackNavigator } from "@react-navigation/stack";
 import { CommonActions } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
+import * as SQLite from "expo-sqlite";
 
 import colors from "../constants/colors";
 import { WindowThumbnail } from "../components/WindowThumbnail";
@@ -18,6 +19,7 @@ import { WindowListHeader } from "../components/WindowListHeader";
 import { NewWindowScreen } from "./NewWindowScreen";
 import { QrScanScreen } from "./QrScanScreen";
 
+const db = SQLite.openDatabase("test.db");
 const WindowStack = createStackNavigator();
 
 export function windowStackNavigator() {
@@ -74,6 +76,46 @@ export function windowStackNavigator() {
   );
 }
 
+function Windows() {
+  const [windows, setWindows] = React.useState(null);
+
+  React.useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `SELECT id, project, name, width, height, z_height FROM windows
+          WHERE EXISTS (SELECT 1 FROM settings WHERE 
+            windows.project = settings.value 
+            AND 
+            settings.key = 'active_project');`,
+        [],
+        (_, { rows: { _array } }) => setWindows(_array),
+        (t, error) => {
+          console.log(error);
+        }
+      );
+    });
+  });
+
+  if (windows === null || windows.length === 0) {
+    return <Text>Keine Fenster angelegt</Text>;
+  }
+
+  return (
+    <View>
+      {windows.map(({ id, name, width, height, z_height }) => (
+        <List.Item
+          key={id}
+          title={name}
+          description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
+          onPress={() => console.log("Pressed List item")}
+          right={() => <WindowThumbnail width={width} height={height} />}
+        />
+      ))}
+      <Divider />
+    </View>
+  );
+}
+
 export function windowListScreen({ navigation }) {
   return (
     <View style={styles.container}>
@@ -87,6 +129,8 @@ export function windowListScreen({ navigation }) {
   </View>*/}
 
       <ScrollView>
+        <Windows />
+        {/*
         <List.Item
           title="Top 1 Wohnzimmer 1"
           description="110 x 130 cm - Höhe: 2,42 m"
@@ -174,7 +218,7 @@ export function windowListScreen({ navigation }) {
               height={Math.random() + 0.3}
             />
           )}
-        />
+          />*/}
       </ScrollView>
 
       <FAB
