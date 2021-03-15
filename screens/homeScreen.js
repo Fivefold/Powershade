@@ -95,7 +95,7 @@ const ObjectRadioButton = (props) => {
       <RadioButton
         value={props.id}
         status={props.selectedObject === props.id ? "checked" : "unchecked"}
-        onPress={() => setActiveProject(props.id)}
+        onPress={() => props.setActiveProject(props.id)}
       />
     </View>
   );
@@ -165,7 +165,11 @@ function Projects() {
           descriptionEllipsizeMode="tail"
           onPress={() => setActiveProject(id)}
           left={() => (
-            <ObjectRadioButton id={id} selectedObject={selectedObject} />
+            <ObjectRadioButton
+              id={id}
+              selectedObject={selectedObject}
+              setActiveProject={setActiveProject}
+            />
           )}
           right={() => (
             <View style={{ justifyContent: "center" }}>
