@@ -24,10 +24,10 @@ export function QrScanScreen({ route, navigation }) {
   };
 
   if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
+    return <Text>Fordere Zugriff auf Kamera an...</Text>;
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return <Text>Kein Zugriff auf Kamera erlaubt</Text>;
   }
 
   return (

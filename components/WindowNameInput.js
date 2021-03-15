@@ -10,7 +10,11 @@ export const WindowNameInput = (props) => {
   return (
     <TextInput
       {...props}
-      onChangeText={(text) => setText(text)}
+      value={text}
+      onChangeText={(text) => {
+        setText(text);
+        props.setValue(props.id, text);
+      }}
       style={styles.windowNameInput}
       underlineColor={colors.white.medium_high_emph}
       theme={{

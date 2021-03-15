@@ -103,15 +103,16 @@ function Windows() {
   return (
     <View>
       {windows.map(({ id, name, width, height, z_height }) => (
-        <List.Item
-          key={id}
-          title={name}
-          description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
-          onPress={() => console.log("Pressed List item")}
-          right={() => <WindowThumbnail width={width} height={height} />}
-        />
+        <View key={id}>
+          <List.Item
+            title={name}
+            description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
+            onPress={() => console.log(width)}
+            right={() => <WindowThumbnail width={width} height={height} />}
+          />
+          <Divider />
+        </View>
       ))}
-      <Divider />
     </View>
   );
 }
@@ -130,95 +131,7 @@ export function windowListScreen({ navigation }) {
 
       <ScrollView>
         <Windows />
-        {/*
-        <List.Item
-          title="Top 1 Wohnzimmer 1"
-          description="110 x 130 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => <WindowThumbnail width={110} height={130} />}
-        />
         <Divider />
-        <List.Item
-          title="Top 1 Wohnzimmer 2"
-          description="100 x 50 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => <WindowThumbnail width={100} height={50} />}
-        />
-        <Divider />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="210 x 130 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => <WindowThumbnail width={210} height={130} />}
-        />
-        <Divider />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-        />
-        <Divider />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-        />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-        />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-        />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-        />
-        <List.Item
-          title="Top 1 Wohnzimmer 3"
-          description="0 x 0 cm - Höhe: 2,42 m"
-          onPress={() => console.log("Pressed List item")}
-          right={() => (
-            <WindowThumbnail
-              width={Math.random() + 0.3}
-              height={Math.random() + 0.3}
-            />
-          )}
-          />*/}
       </ScrollView>
 
       <FAB

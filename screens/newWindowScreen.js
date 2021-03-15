@@ -12,6 +12,7 @@ import {
   Button,
 } from "react-native-paper";
 import { CommonActions } from "@react-navigation/native";
+import * as SQLite from "expo-sqlite";
 
 import colors from "../constants/colors";
 import { WindowNameInput } from "../components/WindowNameInput";
@@ -22,26 +23,111 @@ import { WindowDimInput } from "../components/WindowDimInput";
 import { SensorPosInput } from "../components/SensorPosInput";
 import { DisabledTextInput } from "../components/DisabledTextInput";
 
+const db = SQLite.openDatabase("test.db");
+
 export function NewWindowScreen({ route, navigation }) {
+  const [project, setProject] = React.useState(null);
+  const [texts, setTexts] = React.useState({
+    windowName: "",
+    Annotations: "",
+  });
   const [windowWidth, setWindowWidth] = React.useState("50");
   const [windowHeight, setWindowHeight] = React.useState("50");
   const [sensorCorner, setSensorCorner] = React.useState("upperLeft");
   const [sensorPosH, setSensorPosH] = React.useState("10");
   const [sensorPosV, setSensorPosV] = React.useState("10");
 
+  // Get the active project
+  React.useEffect(() => {
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT 
+            id, customer, street, number, zip, city 
+            FROM projects
+            WHERE EXISTS (
+              SELECT 1 FROM settings WHERE 
+              projects.id = settings.value 
+              AND 
+              settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => {
+            setProject(_array[0]);
+            //console.log("New Window: get active project: " + JSON.stringify(_array[0]));
+          },
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (t) => console.log("query active project in new window: " + t)
+    );
+  }, []);
+
+  const setText = (key, value) => {
+    var newState = texts;
+    newState[key] = value;
+    setTexts(newState);
+  };
+
+  const add = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `INSERT INTO windows (
+          project, 
+          name, 
+          width, 
+          height, 
+          lat, 
+          long, 
+          z_height, 
+          azimuth, 
+          angle, 
+          qr, 
+          annotations) VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          project.id,
+          texts.windowName,
+          windowWidth,
+          windowHeight,
+          0,
+          0,
+          2.2,
+          130,
+          90,
+          route.params.qr.data,
+        ],
+        null,
+        (t, error) => {
+          console.log(error);
+        }
+      );
+    });
+  };
+
+  if (project === null || project.length === 0) {
+    return <View></View>;
+  }
+
   return (
     <View>
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.headerContainer}>
           <List.Item
-            title="Max Mustermann"
-            description="Musterstraße 12, 1234 Musterstadt"
+            title={project.customer}
+            description={`${project.street} ${project.number}, ${project.zip} ${project.city}`}
             left={() => (
               <List.Icon icon="home-account" color={colors.white.high_emph} />
             )}
             theme={{ colors: { text: colors.white.high_emph } }}
           />
-          <WindowNameInput label="Raum-/Fenstername" />
+          <WindowNameInput
+            id="windowName"
+            label="Raum-/Fenstername"
+            value={texts.windowName}
+            setValue={setText}
+          />
           <View style={styles.measurementContainer}>
             <Caption style={{ color: colors.white.high_emph }}>
               MESSUNGSSTATUS
@@ -123,9 +209,12 @@ export function NewWindowScreen({ route, navigation }) {
             />
           </View>
           <CustomTextInput
+            id="annotations"
             label="Anmerkungen"
             mode="outlined"
             multiline={true}
+            value={texts.annotations}
+            setValue={setText}
             style={styles.fullTextInput}
           />
         </View>
@@ -135,7 +224,11 @@ export function NewWindowScreen({ route, navigation }) {
           style={styles.fab}
           icon="content-save"
           label="Speichern"
-          onPress={() => console.log("Pressed save item")}
+          onPress={() => {
+            console.log("Pressed save window");
+            add();
+            navigation.navigate("windowList");
+          }}
         />
       </View>
     </View>
