@@ -22,7 +22,7 @@ export const WindowThumbnail = (props) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: 80,
+    width: 53,
     height: 53,
     marginHorizontal: 5,
     alignItems: "center",

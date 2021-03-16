@@ -7,17 +7,20 @@ import {
   TextInput,
   Divider,
   FAB,
+  Headline,
 } from "react-native-paper";
 import { createStackNavigator } from "@react-navigation/stack";
 import { CommonActions } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as SQLite from "expo-sqlite";
 
-import colors from "../constants/colors";
 import { WindowThumbnail } from "../components/WindowThumbnail";
 import { WindowListHeader } from "../components/WindowListHeader";
 import { NewWindowScreen } from "./NewWindowScreen";
 import { QrScanScreen } from "./QrScanScreen";
+
+import colors from "../constants/colors";
+import { EditDeleteMenu } from "../components/EditDeleteMenu";
 
 const db = SQLite.openDatabase("test.db");
 const WindowStack = createStackNavigator();
@@ -96,8 +99,30 @@ function Windows() {
     });
   });
 
+  const deleteWindow = (id) => {
+    db.transaction(
+      (tx) => {
+        // delete entry
+        tx.executeSql(`DELETE FROM windows WHERE id = ?`, [id]);
+        // update the windows state
+        tx.executeSql(
+          `SELECT id, project, name, width, height, z_height FROM windows
+          WHERE EXISTS (SELECT 1 FROM settings WHERE 
+            windows.project = settings.value 
+            AND 
+            settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => setWindows(_array)
+        );
+      },
+      (t, error) => {
+        console.log(error);
+      }
+    );
+  };
+
   if (windows === null || windows.length === 0) {
-    return <Text>Keine Fenster angelegt</Text>;
+    return <Headline style={{ padding: 13 }}>Keine Fenster angelegt</Headline>;
   }
 
   return (
@@ -108,7 +133,12 @@ function Windows() {
             title={name}
             description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
             onPress={() => console.log(width)}
-            right={() => <WindowThumbnail width={width} height={height} />}
+            right={() => (
+              <View style={styles.stackIcons}>
+                <WindowThumbnail width={width} height={height} />
+                <EditDeleteMenu id={id} deleteProject={deleteWindow} />
+              </View>
+            )}
           />
           <Divider />
         </View>
@@ -155,7 +185,7 @@ const styles = StyleSheet.create({
   },
   stackIcons: {
     flexDirection: "row",
-    right: 4,
+    right: 0,
   },
   fab: {
     position: "absolute",
