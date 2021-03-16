@@ -22,7 +22,7 @@ import { EditObjectScreen } from "./EditObjectScreen";
 const db = SQLite.openDatabase("test.db");
 
 import colors from "../constants/colors";
-import { roundToNearestPixel } from "react-native/Libraries/Utilities/PixelRatio";
+import { EditDeleteMenu } from "../components/EditDeleteMenu";
 
 const HomeStack = createStackNavigator();
 const StatusBarHeight = 20;
@@ -125,6 +125,24 @@ function Projects() {
     );
   };
 
+  const deleteProject = (id) => {
+    db.transaction(
+      (tx) => {
+        // delete entry
+        tx.executeSql(`DELETE FROM projects WHERE id = ?`, [id]);
+        // update the projects state
+        tx.executeSql(
+          `select id, customer, street, number, zip, city from projects;`,
+          [],
+          (_, { rows: { _array } }) => setProjects(_array)
+        );
+      },
+      (t, error) => {
+        console.log(error);
+      }
+    );
+  };
+
   React.useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -158,50 +176,29 @@ function Projects() {
   return (
     <View>
       {projects.map(({ id, customer, street, number, zip, city }) => (
-        <List.Item
-          key={id}
-          title={customer}
-          description={`${street} ${number}, ${zip} ${city}`}
-          descriptionEllipsizeMode="tail"
-          onPress={() => setActiveProject(id)}
-          left={() => (
-            <ObjectRadioButton
-              id={id}
-              selectedObject={selectedObject}
-              setActiveProject={setActiveProject}
-            />
-          )}
-          right={() => (
-            <View style={{ justifyContent: "center" }}>
-              {/*<IconButton
-                icon="pencil"
-                onPress={() => navigation.navigate("editObject")}
-                color={colors.black.medium_high_emph}
-              />*/}
-              <IconButton
-                icon="delete"
-                onPress={() => {
-                  db.transaction(
-                    (tx) => {
-                      tx.executeSql(`DELETE FROM projects WHERE id = ?`, [id]);
-                      tx.executeSql(
-                        `select id, customer, street, number, zip, city from projects;`,
-                        [],
-                        (_, { rows: { _array } }) => setProjects(_array)
-                      );
-                    },
-                    (t, error) => {
-                      console.log(error);
-                    }
-                  );
-                }}
-                color={colors.black.medium_high_emph}
+        <View key={id}>
+          <List.Item
+            key={id}
+            title={customer}
+            description={`${street} ${number}, ${zip} ${city}`}
+            descriptionEllipsizeMode="tail"
+            onPress={() => setActiveProject(id)}
+            left={() => (
+              <ObjectRadioButton
+                id={id}
+                selectedObject={selectedObject}
+                setActiveProject={setActiveProject}
               />
-            </View>
-          )}
-        />
+            )}
+            right={() => (
+              <View style={{ justifyContent: "center" }}>
+                <EditDeleteMenu id={id} deleteProject={deleteProject} />
+              </View>
+            )}
+          />
+          <Divider />
+        </View>
       ))}
-      <Divider />
     </View>
   );
 }
@@ -213,6 +210,7 @@ export function HomeScreen({ route, navigation }) {
     <View style={styles.container}>
       <ScrollView>
         <Projects navigation={navigation} />
+        <Divider />
       </ScrollView>
 
       <FAB
