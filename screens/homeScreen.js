@@ -9,6 +9,7 @@ import {
   RadioButton,
   Divider,
   FAB,
+  Headline,
 } from "react-native-paper";
 import { CommonActions } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -170,7 +171,11 @@ function Projects() {
   });
 
   if (projects === null || projects.length === 0) {
-    return <Text>Keine Projekte angelegt</Text>;
+    return (
+      <Headline style={{ color: colors.black.medium_high_emph, padding: 13 }}>
+        Keine Objekte angelegt
+      </Headline>
+    );
   }
 
   return (
@@ -192,13 +197,18 @@ function Projects() {
             )}
             right={() => (
               <View style={{ justifyContent: "center" }}>
-                <EditDeleteMenu id={id} deleteProject={deleteProject} />
+                <EditDeleteMenu
+                  id={id}
+                  name={customer}
+                  deleteProject={deleteProject}
+                />
               </View>
             )}
           />
           <Divider />
         </View>
       ))}
+      <Divider />
     </View>
   );
 }
@@ -210,7 +220,6 @@ export function HomeScreen({ route, navigation }) {
     <View style={styles.container}>
       <ScrollView>
         <Projects navigation={navigation} />
-        <Divider />
       </ScrollView>
 
       <FAB
@@ -234,6 +243,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "stretch",
     justifyContent: "flex-start",
+  },
+  emptyList: {
+    flex: 1,
+    flexDirection: "column",
+    //flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1%",
   },
   stackIcons: {
     flexDirection: "row",

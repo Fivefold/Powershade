@@ -136,13 +136,18 @@ function Windows() {
             right={() => (
               <View style={styles.stackIcons}>
                 <WindowThumbnail width={width} height={height} />
-                <EditDeleteMenu id={id} deleteProject={deleteWindow} />
+                <EditDeleteMenu
+                  id={id}
+                  name={name}
+                  deleteProject={deleteWindow}
+                />
               </View>
             )}
           />
           <Divider />
         </View>
       ))}
+      <Divider />
     </View>
   );
 }
@@ -161,7 +166,6 @@ export function windowListScreen({ navigation }) {
 
       <ScrollView>
         <Windows />
-        <Divider />
       </ScrollView>
 
       <FAB
