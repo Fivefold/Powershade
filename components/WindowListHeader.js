@@ -9,8 +9,10 @@ const db = SQLite.openDatabase("test.db");
 
 function ActiveProject() {
   const [activeProject, setActiveProject] = React.useState(null);
+  const [numWindows, setNumWindows] = React.useState(0);
 
   React.useEffect(() => {
+    // get the active project for displaying in the header
     db.transaction(
       (tx) => {
         tx.executeSql(
@@ -34,6 +36,29 @@ function ActiveProject() {
       },
       (t) => console.log("query active project in window list header: " + t)
     );
+
+    // get the number of windows of the active project for displaying in
+    // the header
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT COUNT(id) AS numWin FROM windows
+            WHERE EXISTS (SELECT 1 FROM settings 
+              WHERE 
+                windows.project = settings.value 
+                AND 
+                settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => {
+            setNumWindows(_array[0].numWin);
+          },
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (t) => console.log("query number of windows in window list header: " + t)
+    );
   });
 
   if (activeProject === null || activeProject.length === 0) {
@@ -53,7 +78,7 @@ function ActiveProject() {
             )}
             theme={{ colors: { text: colors.white.high_emph } }}
           />
-          <Text style={styles.numberOfWin}>9 Fenster</Text>
+          <Text style={styles.numberOfWin}>{numWindows} Fenster</Text>
         </View>
       ))}
     </View>
