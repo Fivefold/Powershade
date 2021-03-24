@@ -102,7 +102,7 @@ const ObjectRadioButton = (props) => {
   );
 };
 
-function Projects() {
+function Projects({ navigation }) {
   const [projects, setProjects] = React.useState(null);
   const [selectedObject, setSelectedObject] = React.useState();
 
@@ -201,6 +201,7 @@ function Projects() {
                   id={id}
                   name={customer}
                   deleteProject={deleteProject}
+                  navigation={navigation}
                 />
               </View>
             )}

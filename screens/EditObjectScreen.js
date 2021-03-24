@@ -1,64 +1,131 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { FAB } from "react-native-paper";
+import { FAB, TextInput } from "react-native-paper";
+import * as SQLite from "expo-sqlite";
 
-import { CustomTextInput } from "../components/CustomTextInput";
+const db = SQLite.openDatabase("test.db");
 
 export function EditObjectScreen({ navigation }) {
-  const [editMode, setEditMode] = React.useState(false);
+  const [project, setProject] = React.useState({
+    id: "",
+    customer: "",
+    street: "",
+    number: "",
+    zip: null,
+    city: "",
+  });
 
-  function toggleEditMode() {
-    editMode ? setEditMode(false) : setEditMode(true);
-  }
+  React.useEffect(() => {
+    db.transaction(
+      (tx) => {
+        // get the active project for displaying in the header
+        tx.executeSql(
+          `SELECT 
+            id, customer, street, number, zip, city 
+            FROM projects
+            WHERE EXISTS (SELECT 1 FROM settings 
+              WHERE 
+                projects.id = settings.value 
+                AND 
+                settings.key = 'active_project');`,
+          [],
+          (_, { rows: { _array } }) => {
+            //console.log("EditObjectScreen: " + JSON.stringify(_array[0]));
+            if (project.id === "") {
+              setProject(_array[0]);
+            }
+          },
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      },
+      (t) => console.log("EditObjectScreen SQL query: " + t)
+    );
+  }, []);
+
+  const setValue = (key, value) => {
+    setProject((oldState) => ({
+      ...oldState,
+      [key]: value,
+    }));
+  };
+
+  const update = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `UPDATE projects 
+          SET customer = ?, 
+              street = ?, 
+              number = ?, 
+              zip = ?, 
+              city = ?
+          WHERE id = ?;`,
+        [
+          project.customer,
+          project.street,
+          project.number,
+          project.zip,
+          project.city,
+          project.id,
+        ],
+        null,
+        (t, error) => {
+          console.log(error);
+        }
+      );
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <CustomTextInput
-        disabled={!editMode}
+      <TextInput
         label="Kunde"
-        value="Max Mustermann"
         mode="outlined"
+        name="customer"
+        value={project.customer}
+        onChangeText={(text) => setValue("customer", text)}
         style={styles.fullTextInput}
       />
-      <CustomTextInput
-        disabled={!editMode}
+      <TextInput
         label="Straße"
-        value="Musterstraße"
         mode="outlined"
+        value={project.street}
+        onChangeText={(text) => setValue("street", text)}
         style={styles.wideTextInput}
       />
-      <CustomTextInput
-        disabled={!editMode}
+      <TextInput
         label="Nr."
-        value="12"
         mode="outlined"
         keyboardType="number-pad"
+        value={project.number}
+        onChangeText={(text) => setValue("number", text)}
         style={styles.smallTextInput}
       />
-      <CustomTextInput
-        disabled={!editMode}
+      <TextInput
         label="PLZ"
-        value="1234"
         mode="outlined"
         keyboardType="number-pad"
+        value={String(project.zip)}
+        onChangeText={(text) => setValue("zip", Number(text))}
         style={styles.smallTextInput}
       />
-      <CustomTextInput
-        disabled={!editMode}
+      <TextInput
         label="Stadt"
-        value="Musterstadt"
         mode="outlined"
+        value={project.city}
+        onChangeText={(text) => setValue("city", text)}
         style={styles.wideTextInput}
       />
       <FAB
         style={styles.fab}
-        icon={editMode ? "content-save" : "pencil"}
-        label={editMode ? "Speichern" : "Bearbeiten"}
-        onPress={
-          editMode
-            ? () => toggleEditMode() //
-            : () => toggleEditMode()
-        }
+        icon={"content-save"}
+        label={"Speichern"}
+        onPress={() => {
+          console.log(JSON.stringify(project));
+          update();
+          navigation.navigate("selectObject");
+        }}
       />
     </View>
   );

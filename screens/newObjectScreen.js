@@ -1,26 +1,25 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { CommonActions } from "@react-navigation/native";
-import { FAB } from "react-native-paper";
+import { FAB, TextInput } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabase("test.db");
 
-import { CustomTextInput } from "../components/CustomTextInput";
-
 export function NewObjectScreen({ navigation }) {
-  const [values, setValues] = React.useState({
+  const [project, setProject] = React.useState({
+    id: "",
     customer: "",
     street: "",
     number: "",
-    zip: "",
+    zip: null,
     city: "",
   });
 
   const setValue = (key, value) => {
-    var newState = values;
-    newState[key] = value;
-    setValues(newState);
+    setProject((oldState) => ({
+      ...oldState,
+      [key]: value,
+    }));
   };
 
   const add = () => {
@@ -28,53 +27,58 @@ export function NewObjectScreen({ navigation }) {
       tx.executeSql(
         `INSERT INTO projects (customer, street, number, zip, city) VALUES
         (?, ?, ?, ?, ?);`,
-        [values.customer, values.street, values.number, values.zip, values.city]
+        [
+          project.customer,
+          project.street,
+          project.number,
+          project.zip,
+          project.city,
+        ]
       );
     });
   };
 
   return (
     <View style={styles.container}>
-      <CustomTextInput
-        id="customer"
+      <TextInput
         label="Kunde"
         mode="outlined"
-        value={values.customer}
-        setValue={setValue}
+        value={project.customer}
+        onChangeText={(text) => setValue("customer", text)}
         style={styles.fullTextInput}
       />
-      <CustomTextInput
+      <TextInput
         id="street"
         label="Straße"
         mode="outlined"
-        value={values.street}
-        setValue={setValue}
+        value={project.street}
+        onChangeText={(text) => setValue("street", text)}
         style={styles.wideTextInput}
       />
-      <CustomTextInput
+      <TextInput
         id="number"
         label="Nr."
         mode="outlined"
         keyboardType="number-pad"
-        value={values.number}
-        setValue={setValue}
+        value={project.number}
+        onChangeText={(text) => setValue("number", text)}
         style={styles.smallTextInput}
       />
-      <CustomTextInput
+      <TextInput
         id="zip"
         label="PLZ"
         mode="outlined"
         keyboardType="number-pad"
-        value={values.zip}
-        setValue={setValue}
+        value={project.zip}
+        onChangeText={(text) => setValue("zip", Number(text))}
         style={styles.smallTextInput}
       />
-      <CustomTextInput
+      <TextInput
         id="city"
         label="Stadt"
         mode="outlined"
-        value={values.city}
-        setValue={setValue}
+        value={project.city}
+        onChangeText={(text) => setValue("city", text)}
         style={styles.wideTextInput}
       />
       <FAB
@@ -82,9 +86,8 @@ export function NewObjectScreen({ navigation }) {
         icon="content-save"
         label="Speichern"
         onPress={() => {
-          console.log(values);
           add();
-          navigation.navigate("selectObject", { newProject: { values } });
+          navigation.navigate("selectObject");
         }}
       />
     </View>

@@ -45,7 +45,7 @@ const DeleteDialog = (props) => {
   );
 };
 
-export const EditDeleteMenu = (props) => {
+export const EditDeleteMenu = (props, navigation) => {
   const [visible, setVisible] = React.useState(false);
   const [dialogVisible, setDialogVisible] = React.useState(false);
 
@@ -65,7 +65,14 @@ export const EditDeleteMenu = (props) => {
         onDismiss={closeMenu}
         anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
       >
-        <Menu.Item icon="pencil" onPress={() => {}} title="Bearbeiten" />
+        <Menu.Item
+          icon="pencil"
+          onPress={() => {
+            setVisible(false);
+            navigation.navigate("editObject");
+          }}
+          title="Bearbeiten"
+        />
         <Menu.Item
           icon="delete"
           onPress={
