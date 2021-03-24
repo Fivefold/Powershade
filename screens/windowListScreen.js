@@ -68,13 +68,6 @@ export function windowStackNavigator() {
           title: "QR Code scannen",
         }}
       />
-      {/* custom header - input is not selectable? <WindowStack.Screen
-        name="newWindow"
-        component={newWindowScreen}
-        options={{
-          header: (props) => <NewWindowHeader {...props} />,
-        }}
-      />*/}
     </WindowStack.Navigator>
   );
 }

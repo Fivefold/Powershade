@@ -8,7 +8,7 @@ export const SensorPositionToggle = (props) => {
   function setValue(val) {
     // prevent deselecting the position
     val == null ? (val = props.value) : null;
-    props.setSensorCorner(val);
+    props.setSensorCorner("sensorCorner", val);
   }
   return (
     <ToggleButton.Row

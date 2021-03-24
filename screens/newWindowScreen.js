@@ -11,31 +11,57 @@ import {
   FAB,
   Button,
 } from "react-native-paper";
-import { CommonActions } from "@react-navigation/native";
 import * as SQLite from "expo-sqlite";
 
 import colors from "../constants/colors";
-import { WindowNameInput } from "../components/WindowNameInput";
-import { CustomTextInput } from "../components/CustomTextInput";
+
 import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
-import { WindowDimInput } from "../components/WindowDimInput";
-import { SensorPosInput } from "../components/SensorPosInput";
-import { DisabledTextInput } from "../components/DisabledTextInput";
 
 const db = SQLite.openDatabase("test.db");
 
 export function NewWindowScreen({ route, navigation }) {
+  // The active project
   const [project, setProject] = React.useState(null);
+  // The data of the newly created window.
+  const [window, setWindow] = React.useState({
+    windowName: "",
+    annotations: "",
+    windowWidth: "50",
+    windowHeight: "50",
+    sensorCorner: "upperLeft",
+    sensorPosH: "10",
+    sensorPosV: "10",
+  });
+
+  /* Temporary state to store input field texts during entry.
+   * The real state (window) is updated onBlur.
+   */
+  const [temp, setTemp] = React.useState({
+    windowWidth: "",
+    windowHeight: "",
+    sensorPosH: "10",
+    sensorPosV: "10",
+  });
+
   const [texts, setTexts] = React.useState({
     windowName: "",
     Annotations: "",
   });
-  const [windowWidth, setWindowWidth] = React.useState("50");
-  const [windowHeight, setWindowHeight] = React.useState("50");
-  const [sensorCorner, setSensorCorner] = React.useState("upperLeft");
-  const [sensorPosH, setSensorPosH] = React.useState("10");
-  const [sensorPosV, setSensorPosV] = React.useState("10");
+
+  const setValue = (key, value) => {
+    setWindow((oldState) => ({
+      ...oldState,
+      [key]: value,
+    }));
+  };
+
+  const setTempValue = (key, value) => {
+    setTemp((oldState) => ({
+      ...oldState,
+      [key]: value,
+    }));
+  };
 
   // Get the active project
   React.useEffect(() => {
@@ -64,12 +90,6 @@ export function NewWindowScreen({ route, navigation }) {
     );
   }, []);
 
-  const setText = (key, value) => {
-    var newState = texts;
-    newState[key] = value;
-    setTexts(newState);
-  };
-
   const add = () => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -88,15 +108,16 @@ export function NewWindowScreen({ route, navigation }) {
         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           project.id,
-          texts.windowName,
-          windowWidth,
-          windowHeight,
+          window.windowName,
+          window.windowWidth,
+          window.windowHeight,
           0,
           0,
           2.2,
           130,
           90,
           route.params.qr.data,
+          window.annotations,
         ],
         null,
         (t, error) => {
@@ -122,11 +143,19 @@ export function NewWindowScreen({ route, navigation }) {
             )}
             theme={{ colors: { text: colors.white.high_emph } }}
           />
-          <WindowNameInput
-            id="windowName"
+          <TextInput
             label="Raum-/Fenstername"
-            value={texts.windowName}
-            setValue={setText}
+            value={window.windowName}
+            onChangeText={(text) => setValue("windowName", text)}
+            style={styles.windowNameInput}
+            underlineColor={colors.white.medium_high_emph}
+            theme={{
+              colors: {
+                text: colors.white.high_emph,
+                primary: colors.secondary._600,
+                placeholder: colors.white.medium_high_emph,
+              },
+            }}
           />
           <View style={styles.measurementContainer}>
             <Caption style={{ color: colors.white.high_emph }}>
@@ -145,50 +174,56 @@ export function NewWindowScreen({ route, navigation }) {
         </View>
         <View style={styles.dimContainer}>
           <Caption style={styles.dimCaption}>FENSTERABMESSUNGEN</Caption>
-          <WindowDimInput
+          <TextInput
             label="Breite"
             mode="outlined"
             keyboardType="number-pad"
-            setWindowDim={setWindowWidth}
+            value={temp.windowWidth}
+            onChangeText={(text) => setTempValue("windowWidth", text)}
+            onBlur={() => setValue("windowWidth", temp.windowWidth)}
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
-          <WindowDimInput
+          <TextInput
             label="Höhe"
             mode="outlined"
             keyboardType="number-pad"
-            setWindowDim={setWindowHeight}
+            value={temp.windowHeight}
+            onChangeText={(text) => setTempValue("windowHeight", text)}
+            onBlur={() => setValue("windowHeight", temp.windowHeight)}
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
           <WindowPreview
-            width={windowWidth}
-            height={windowHeight}
-            sensorPosH={sensorPosH}
-            sensorPosV={sensorPosV}
-            sensorCorner={sensorCorner}
+            width={window.windowWidth}
+            height={window.windowHeight}
+            sensorPosH={window.sensorPosH}
+            sensorPosV={window.sensorPosV}
+            sensorCorner={window.sensorCorner}
           />
           <View style={styles.sensorContainer}>
             <Caption style={styles.dimCaption}>SENSORPOSITION</Caption>
             <SensorPositionToggle
-              value={sensorCorner}
-              setSensorCorner={setSensorCorner}
+              value={window.sensorCorner}
+              setSensorCorner={setValue}
             />
-            <SensorPosInput
+            <TextInput
               label="horizontal"
               mode="outlined"
               keyboardType="number-pad"
-              initialValue={sensorPosH}
-              setSensorPos={setSensorPosH}
+              value={temp.sensorPosH}
+              onChangeText={(text) => setTempValue("sensorPosH", text)}
+              onBlur={() => setValue("sensorPosH", temp.sensorPosH)}
               style={styles.fullTextInput}
               right={<TextInput.Affix text="cm" />}
             />
-            <SensorPosInput
+            <TextInput
               label="vertikal"
               mode="outlined"
               keyboardType="number-pad"
-              initialValue={sensorPosV}
-              setSensorPos={setSensorPosV}
+              value={temp.sensorPosV}
+              onChangeText={(text) => setTempValue("sensorPosV", text)}
+              onBlur={() => setValue("sensorPosV", temp.sensorPosV)}
               style={styles.fullTextInput}
               right={<TextInput.Affix text="cm" />}
             />
@@ -201,20 +236,20 @@ export function NewWindowScreen({ route, navigation }) {
               style={styles.qrButton}
               onPress={() => navigation.navigate("qrScan")}
             />
-            <DisabledTextInput
+            <TextInput
               label="QR-Kennung"
               value={route.params.qr.data}
               mode="outlined"
+              disabled="true"
               style={styles.qrInput}
             />
           </View>
-          <CustomTextInput
-            id="annotations"
+          <TextInput
             label="Anmerkungen"
             mode="outlined"
             multiline={true}
-            value={texts.annotations}
-            setValue={setText}
+            value={window.annotations}
+            onChangeText={(text) => setValue("annotations", text)}
             style={styles.fullTextInput}
           />
         </View>
@@ -239,6 +274,11 @@ var marginHorizontal = "2%";
 var marginVertical = "0.5%";
 
 const styles = StyleSheet.create({
+  // --- Input field stylings ---
+  windowNameInput: {
+    backgroundColor: colors.primary._900,
+    marginHorizontal: "3%",
+  },
   // --- Header ---
   headerContainer: {
     backgroundColor: colors.primary._800,

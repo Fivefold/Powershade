@@ -7,23 +7,24 @@ import colors from "../constants/colors";
 
 const db = SQLite.openDatabase("test.db");
 
+// Component that shows the active project and number of assigned windows
 function ActiveProject() {
   const [activeProject, setActiveProject] = React.useState(null);
   const [numWindows, setNumWindows] = React.useState(0);
 
   React.useEffect(() => {
-    // get the active project for displaying in the header
     db.transaction(
       (tx) => {
+        // get the active project for displaying in the header
         tx.executeSql(
           `SELECT 
-        id, customer, street, number, zip, city 
-        FROM projects
-        WHERE EXISTS (SELECT 1 FROM settings 
-          WHERE 
-            projects.id = settings.value 
-            AND 
-            settings.key = 'active_project');`,
+            id, customer, street, number, zip, city 
+            FROM projects
+            WHERE EXISTS (SELECT 1 FROM settings 
+              WHERE 
+                projects.id = settings.value 
+                AND 
+                settings.key = 'active_project');`,
           [],
           (_, { rows: { _array } }) => {
             setActiveProject(_array);
@@ -33,14 +34,8 @@ function ActiveProject() {
             console.log(error);
           }
         );
-      },
-      (t) => console.log("query active project in window list header: " + t)
-    );
-
-    // get the number of windows of the active project for displaying in
-    // the header
-    db.transaction(
-      (tx) => {
+        // get the number of windows of the active project for displaying in
+        // the header
         tx.executeSql(
           `SELECT COUNT(id) AS numWin FROM windows
             WHERE EXISTS (SELECT 1 FROM settings 
@@ -57,7 +52,7 @@ function ActiveProject() {
           }
         );
       },
-      (t) => console.log("query number of windows in window list header: " + t)
+      (t) => console.log("query active project in window list header: " + t)
     );
   });
 

@@ -2,9 +2,6 @@ import React from "react";
 import { View, StyleSheet, Button } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { Text } from "react-native-paper";
-import { CommonActions } from "@react-navigation/native";
-
-import { CustomTextInput } from "../components/CustomTextInput";
 
 export function QrScanScreen({ route, navigation }) {
   const [hasPermission, setHasPermission] = React.useState(null);
