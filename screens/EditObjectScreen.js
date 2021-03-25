@@ -5,7 +5,7 @@ import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabase("test.db");
 
-export function EditObjectScreen({ navigation }) {
+export function EditObjectScreen({ route, navigation }) {
   const [project, setProject] = React.useState({
     id: "",
     customer: "",
@@ -14,21 +14,17 @@ export function EditObjectScreen({ navigation }) {
     zip: null,
     city: "",
   });
-
+  console.log("id = " + route.params.id);
   React.useEffect(() => {
     db.transaction(
       (tx) => {
-        // get the active project for displaying in the header
+        // get the project to edit for filling the forms
         tx.executeSql(
           `SELECT 
             id, customer, street, number, zip, city 
             FROM projects
-            WHERE EXISTS (SELECT 1 FROM settings 
-              WHERE 
-                projects.id = settings.value 
-                AND 
-                settings.key = 'active_project');`,
-          [],
+            WHERE id = ?;`,
+          [route.params.id],
           (_, { rows: { _array } }) => {
             //console.log("EditObjectScreen: " + JSON.stringify(_array[0]));
             if (project.id === "") {

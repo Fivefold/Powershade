@@ -11,6 +11,7 @@ import {
   Dialog,
   Portal,
 } from "react-native-paper";
+import { CommonActions } from "@react-navigation/native";
 import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabase("test.db");
@@ -45,7 +46,7 @@ const DeleteDialog = (props) => {
   );
 };
 
-export const EditDeleteMenu = (props, navigation) => {
+export const EditDeleteMenu = (props) => {
   const [visible, setVisible] = React.useState(false);
   const [dialogVisible, setDialogVisible] = React.useState(false);
 
@@ -69,18 +70,11 @@ export const EditDeleteMenu = (props, navigation) => {
           icon="pencil"
           onPress={() => {
             setVisible(false);
-            navigation.navigate("editObject");
+            props.navigation.navigate("editObject", { id: props.id });
           }}
           title="Bearbeiten"
         />
-        <Menu.Item
-          icon="delete"
-          onPress={
-            //() => props.deleteProject(props.id)}
-            showDialog
-          }
-          title="Löschen"
-        />
+        <Menu.Item icon="delete" onPress={showDialog} title="Löschen" />
       </Menu>
       <DeleteDialog
         {...props}
