@@ -11,13 +11,23 @@ export const WindowPreview = (props) => {
   const windowSize = useWindowDimensions();
   const windowsContainerWidth = (windowSize.width - 168) * 0.78;
 
+  // At the beginning of a new window there are no dimensions yet.
+  // Put in placeholders
+  if (props.width === "" || props.height === "") {
+    var width = 100;
+    var height = 100;
+  } else {
+    var width = props.width;
+    var height = props.height;
+  }
+
   // Fit the window into the parent view (container) regardless of size
   var scale = Math.min(
-    windowsContainerWidth / props.width,
-    styles.windowContainer.height / props.height
+    windowsContainerWidth / width,
+    styles.windowContainer.height / height
   );
-  var scaledWidth = props.width * scale;
-  var scaledHeight = props.height * scale;
+  var scaledWidth = width * scale;
+  var scaledHeight = height * scale;
   var scaledSensorPosH = props.sensorPosH * scale;
   var scaledSensorPosV = props.sensorPosV * scale;
 
@@ -63,8 +73,12 @@ export const WindowPreview = (props) => {
         style={[styles.window, { width: scaledWidth, height: scaledHeight }]}
       >
         <Caption>Von innen</Caption>
-        <Caption style={styles.heightCaption}>{props.height}</Caption>
-        <Caption>{props.width}</Caption>
+        <Caption style={styles.heightCaption}>
+          {props.width === "" || props.height === "" ? null : props.height}
+        </Caption>
+        <Caption>
+          {props.width === "" || props.height === "" ? null : props.width}
+        </Caption>
 
         <View
           style={[
