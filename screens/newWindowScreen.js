@@ -1,7 +1,6 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
-  Text,
   IconButton,
   List,
   TextInput,
@@ -9,7 +8,6 @@ import {
   Subheading,
   Caption,
   FAB,
-  Button,
 } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
@@ -22,33 +20,37 @@ const db = SQLite.openDatabase("test.db");
 
 export function NewWindowScreen({ route, navigation }) {
   // The active project
-  const [project, setProject] = React.useState(null);
+  const [project, setProject] = React.useState({
+    id: "",
+    customer: "",
+    street: "",
+    number: "",
+    zip: "",
+    city: "",
+  });
   // The data of the newly created window.
   const [window, setWindow] = React.useState({
-    windowName: "",
+    name: "",
     annotations: "",
-    windowWidth: "50",
-    windowHeight: "50",
+    width: "",
+    height: "",
     sensorCorner: "upperLeft",
     sensorPosH: "10",
     sensorPosV: "10",
+    qr: "",
   });
 
   /* Temporary state to store input field texts during entry.
    * The real state (window) is updated onBlur.
    */
   const [temp, setTemp] = React.useState({
-    windowWidth: "",
-    windowHeight: "",
+    width: "",
+    height: "",
     sensorPosH: "10",
     sensorPosV: "10",
   });
 
-  const [texts, setTexts] = React.useState({
-    windowName: "",
-    Annotations: "",
-  });
-
+  // update a single value in the 'window' state object
   const setValue = (key, value) => {
     setWindow((oldState) => ({
       ...oldState,
@@ -56,12 +58,17 @@ export function NewWindowScreen({ route, navigation }) {
     }));
   };
 
+  // update a single value in the temporary state
   const setTempValue = (key, value) => {
     setTemp((oldState) => ({
       ...oldState,
       [key]: value,
     }));
   };
+
+  React.useEffect(() => {
+    setValue("qr", route.params.qr.data);
+  }, [route.params.qr.data]);
 
   // Get the active project
   React.useEffect(() => {
@@ -85,11 +92,33 @@ export function NewWindowScreen({ route, navigation }) {
             console.log(error);
           }
         );
+
+        // Editing mode:
+        if (route.params.windowId) {
+          // get the window to edit for filling the forms
+          tx.executeSql(
+            `SELECT * FROM windows WHERE id = ?;`,
+            [route.params.windowId],
+            (_, { rows: { _array } }) => {
+              setWindow(_array[0]);
+              setTemp({
+                width: String(_array[0].width),
+                height: String(_array[0].height),
+                sensorPosH: String(_array[0].sensorPosH),
+                sensorPosV: String(_array[0].sensorPosV),
+              });
+            },
+            (t, error) => {
+              console.log(error);
+            }
+          );
+        }
       },
       (t) => console.log("query active project in new window: " + t)
     );
   }, []);
 
+  // Add a new window
   const add = () => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -97,7 +126,10 @@ export function NewWindowScreen({ route, navigation }) {
           project, 
           name, 
           width, 
-          height, 
+          height,
+          sensorCorner,
+          sensorPosH,
+          sensorPosV, 
           lat, 
           long, 
           z_height, 
@@ -105,12 +137,15 @@ export function NewWindowScreen({ route, navigation }) {
           angle, 
           qr, 
           annotations) VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           project.id,
-          window.windowName,
-          window.windowWidth,
-          window.windowHeight,
+          window.name,
+          window.width,
+          window.height,
+          window.sensorCorner,
+          window.sensorPosH,
+          window.sensorPosV,
           0,
           0,
           2.2,
@@ -127,8 +162,61 @@ export function NewWindowScreen({ route, navigation }) {
     });
   };
 
-  if (project === null || project.length === 0) {
-    return <View></View>;
+  // Update an existing window
+  const update = () => {
+    console.log("before update:  " + JSON.stringify(window));
+    db.transaction((tx) => {
+      tx.executeSql(
+        `UPDATE windows
+          SET name = ?, 
+              width = ?, 
+              height = ?,
+              sensorCorner = ?,
+              sensorPosH = ?,
+              sensorPosV = ?, 
+              lat = ?, 
+              long = ?, 
+              z_height = ?, 
+              azimuth = ?, 
+              angle = ?, 
+              qr = ?, 
+              annotations = ?
+          WHERE id = ?;`,
+        [
+          window.name,
+          window.width,
+          window.height,
+          window.sensorCorner,
+          window.sensorPosH,
+          window.sensorPosV,
+          0,
+          0,
+          2.2,
+          130,
+          90,
+          window.qr,
+          window.annotations,
+          route.params.windowId,
+        ],
+        null,
+        (t, error) => {
+          console.log(error);
+        }
+      );
+    });
+  };
+
+  // data has not been fetched yet, show a loading screen
+  if (project.id === "") {
+    return (
+      <View style={styles.emptyPage}>
+        <ActivityIndicator
+          animating={true}
+          size="large"
+          color={colors.primary._800}
+        />
+      </View>
+    );
   }
 
   return (
@@ -137,7 +225,10 @@ export function NewWindowScreen({ route, navigation }) {
         <View style={styles.headerContainer}>
           <List.Item
             title={project.customer}
-            description={`${project.street} ${project.number}, ${project.zip} ${project.city}`}
+            description={
+              `${project.street} ${project.number}, ` +
+              `${project.zip} ${project.city}`
+            }
             left={() => (
               <List.Icon icon="home-account" color={colors.white.high_emph} />
             )}
@@ -145,8 +236,8 @@ export function NewWindowScreen({ route, navigation }) {
           />
           <TextInput
             label="Raum-/Fenstername"
-            value={window.windowName}
-            onChangeText={(text) => setValue("windowName", text)}
+            value={window.name}
+            onChangeText={(text) => setValue("name", text)}
             style={styles.windowNameInput}
             underlineColor={colors.white.medium_high_emph}
             theme={{
@@ -178,9 +269,9 @@ export function NewWindowScreen({ route, navigation }) {
             label="Breite"
             mode="outlined"
             keyboardType="number-pad"
-            value={temp.windowWidth}
-            onChangeText={(text) => setTempValue("windowWidth", text)}
-            onBlur={() => setValue("windowWidth", temp.windowWidth)}
+            value={temp.width}
+            onChangeText={(text) => setTempValue("width", text)}
+            onBlur={() => setValue("width", temp.width)}
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
@@ -188,15 +279,15 @@ export function NewWindowScreen({ route, navigation }) {
             label="Höhe"
             mode="outlined"
             keyboardType="number-pad"
-            value={temp.windowHeight}
-            onChangeText={(text) => setTempValue("windowHeight", text)}
-            onBlur={() => setValue("windowHeight", temp.windowHeight)}
+            value={temp.height}
+            onChangeText={(text) => setTempValue("height", text)}
+            onBlur={() => setValue("height", temp.height)}
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
           <WindowPreview
-            width={window.windowWidth}
-            height={window.windowHeight}
+            width={window.width}
+            height={window.height}
             sensorPosH={window.sensorPosH}
             sensorPosV={window.sensorPosV}
             sensorCorner={window.sensorCorner}
@@ -238,7 +329,7 @@ export function NewWindowScreen({ route, navigation }) {
             />
             <TextInput
               label="QR-Kennung"
-              value={route.params.qr.data}
+              value={window.qr}
               mode="outlined"
               disabled="true"
               style={styles.qrInput}
@@ -261,7 +352,7 @@ export function NewWindowScreen({ route, navigation }) {
           label="Speichern"
           onPress={() => {
             console.log("Pressed save window");
-            add();
+            route.params.windowId ? update() : add(); // editing or creating?
             navigation.navigate("windowList");
           }}
         />
@@ -274,6 +365,10 @@ var marginHorizontal = "2%";
 var marginVertical = "0.5%";
 
 const styles = StyleSheet.create({
+  emptyPage: {
+    height: "100%",
+    justifyContent: "center",
+  },
   // --- Input field stylings ---
   windowNameInput: {
     backgroundColor: colors.primary._900,

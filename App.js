@@ -59,6 +59,9 @@ export default function App() {
             name TEXT, 
             width REAL,
             height REAL,
+            sensorCorner TEXT,
+            sensorPosH REAL,
+            sensorPosV REAL,
             lat REAL,
             long REAL,
             z_height REAL,
@@ -159,7 +162,7 @@ export default function App() {
             }}
           />
           <Tab.Screen
-            name="Fensterliste"
+            name="Fenster"
             component={windowStackNavigator}
             options={{
               tabBarIcon: "application",

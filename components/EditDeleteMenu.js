@@ -24,7 +24,7 @@ const DeleteDialog = (props) => {
           <Dialog.Title>Löschen</Dialog.Title>
           <Dialog.Content>
             <Paragraph>
-              Wirklich Objekt{" "}
+              Wirklich {props.deleteWindow ? "Fenster " : "Objekt "}
               <Text style={{ fontWeight: "bold" }}>„{props.name}“</Text>{" "}
               löschen?
             </Paragraph>
@@ -33,7 +33,10 @@ const DeleteDialog = (props) => {
             <Button onPress={props.hideDialog}>Nein</Button>
             <Button
               onPress={() => {
-                props.deleteProject(props.id);
+                // window mode
+                if (props.deleteWindow) props.deleteWindow(props.id);
+                // project mode
+                else props.deleteProject(props.id);
                 props.hideDialog;
               }}
             >
@@ -70,7 +73,14 @@ export const EditDeleteMenu = (props) => {
           icon="pencil"
           onPress={() => {
             setVisible(false);
-            props.navigation.navigate("editObject", { id: props.id });
+            // window mode
+            if (props.deleteWindow)
+              props.navigation.navigate("newWindow", {
+                windowId: props.id,
+                qr: "",
+              });
+            // project mode
+            else props.navigation.navigate("editObject", { id: props.id });
           }}
           title="Bearbeiten"
         />

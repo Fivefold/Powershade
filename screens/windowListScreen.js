@@ -72,7 +72,7 @@ export function windowStackNavigator() {
   );
 }
 
-function Windows() {
+function Windows({ navigation }) {
   const [windows, setWindows] = React.useState(null);
 
   React.useEffect(() => {
@@ -132,7 +132,8 @@ function Windows() {
                 <EditDeleteMenu
                   id={id}
                   name={name}
-                  deleteProject={deleteWindow}
+                  deleteWindow={deleteWindow}
+                  navigation={navigation}
                 />
               </View>
             )}
@@ -158,7 +159,7 @@ export function windowListScreen({ navigation }) {
   </View>*/}
 
       <ScrollView>
-        <Windows />
+        <Windows navigation={navigation} />
       </ScrollView>
 
       <FAB
