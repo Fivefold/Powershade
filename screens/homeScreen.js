@@ -219,7 +219,7 @@ export function HomeScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <Projects navigation={navigation} />
       </ScrollView>
 
