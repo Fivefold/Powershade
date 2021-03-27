@@ -4,17 +4,12 @@ import {
   IconButton,
   Menu,
   Text,
-  Divider,
-  Provider,
   Button,
   Paragraph,
   Dialog,
   Portal,
+  Divider,
 } from "react-native-paper";
-import { CommonActions } from "@react-navigation/native";
-import * as SQLite from "expo-sqlite";
-
-const db = SQLite.openDatabase("test.db");
 
 const DeleteDialog = (props) => {
   return (
@@ -49,6 +44,52 @@ const DeleteDialog = (props) => {
   );
 };
 
+const WindowWarnings = (props) => {
+  let noDimensions = (
+    <Menu.Item
+      key="noDimensions"
+      icon="application"
+      disabled={true}
+      title="Keine Fenstermaße"
+    />
+  );
+  let noFields = (
+    <Menu.Item
+      key="noFields"
+      icon="qrcode"
+      disabled={true}
+      title="Kein QR-Code"
+    />
+  );
+  let noMeasurement = (
+    <Menu.Item
+      key="noMeasurement"
+      icon="crosshairs-question"
+      disabled={true}
+      title="Keine Messung"
+    />
+  );
+
+  let array = [];
+
+  if (props.noDimensions) array.push(noDimensions);
+  if (props.fieldsIncomplete) array.push(noFields);
+  if (props.measureIncomplete) {
+    array.push(noMeasurement);
+  }
+
+  if (array === []) return null;
+  else {
+    array.push(<Divider key="divider" />);
+    return array;
+  }
+
+  // if (props.noDimensions && props.fieldsIncomplete && props.noMeasurement)
+  //   return [noDimensions, noFields, noMeasurement];
+  // else if
+  // else return null;
+};
+
 export const EditDeleteMenu = (props) => {
   const [visible, setVisible] = React.useState(false);
   const [dialogVisible, setDialogVisible] = React.useState(false);
@@ -69,6 +110,7 @@ export const EditDeleteMenu = (props) => {
         onDismiss={closeMenu}
         anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
       >
+        <WindowWarnings {...props} />
         <Menu.Item
           icon="pencil"
           onPress={() => {

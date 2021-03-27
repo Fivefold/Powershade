@@ -57,7 +57,6 @@ function ActiveProject() {
   });
 
   if (activeProject === null || activeProject.length === 0) {
-    console.log("no project active");
     return <Text>Keine Projekte angelegt</Text>;
   }
 

@@ -10,7 +10,6 @@ import {
   Headline,
 } from "react-native-paper";
 import { createStackNavigator } from "@react-navigation/stack";
-import { CommonActions } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as SQLite from "expo-sqlite";
 
@@ -78,7 +77,7 @@ function Windows({ navigation }) {
   React.useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
-        `SELECT id, project, name, width, height, z_height FROM windows
+        `SELECT id, project, name, width, height, z_height, qr FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
@@ -120,19 +119,27 @@ function Windows({ navigation }) {
 
   return (
     <View>
-      {windows.map(({ id, name, width, height, z_height }) => (
+      {windows.map(({ id, name, width, height, z_height, qr }) => (
         <View key={id}>
           <List.Item
             title={name}
             description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
-            onPress={() => console.log(width)}
             right={() => (
               <View style={styles.stackIcons}>
-                <WindowThumbnail width={width} height={height} />
+                <WindowThumbnail
+                  width={width}
+                  height={height}
+                  noDimensions={width === "" || height === ""}
+                  fieldsIncomplete={qr === "" || qr === null}
+                  measureIncomplete={z_height == ""}
+                />
                 <EditDeleteMenu
                   id={id}
                   name={name}
                   deleteWindow={deleteWindow}
+                  noDimensions={width === "" || height === ""}
+                  fieldsIncomplete={qr === "" || qr === null}
+                  measureIncomplete={z_height == "" || z_height === null}
                   navigation={navigation}
                 />
               </View>
@@ -149,16 +156,7 @@ function Windows({ navigation }) {
 export function windowListScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      {/*<View style={styles.objectView}>
-        <List.Item
-          title="Max Mustermann"
-          description="Musterstraße 12, 1234 Musterstadt"
-          left={() => <List.Icon icon="home-account" />}
-        />
-        <Text>4 Fenster</Text>
-  </View>*/}
-
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         <Windows navigation={navigation} />
       </ScrollView>
 
