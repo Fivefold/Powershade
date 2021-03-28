@@ -30,6 +30,7 @@ export function NewObjectScreen({ route, navigation }) {
     city: "",
   });
 
+  // Error flags for each input field. Used for input validation.
   const [inputErrors, setInputErrors] = React.useState({
     customer: false,
     street: false,
@@ -70,6 +71,10 @@ export function NewObjectScreen({ route, navigation }) {
     project.zip === "" ||
     project.city === "";
 
+  /** Update or add a single value in the 'project' state object. No nesting.
+   * @param {string} key - The key in the key-value pair
+   * @param {*} value - The value in the key-value pair
+   */
   const setValue = (key, value) => {
     setProject((oldState) => ({
       ...oldState,
@@ -77,6 +82,10 @@ export function NewObjectScreen({ route, navigation }) {
     }));
   };
 
+  /** Update or add a single value in the 'error' state object. No nesting.
+   * @param {string} key - The key in the key-value pair
+   * @param {*} value - The value in the key-value pair
+   */
   const setError = (key, value) => {
     setInputErrors((oldState) => ({
       ...oldState,
@@ -84,6 +93,7 @@ export function NewObjectScreen({ route, navigation }) {
     }));
   };
 
+  /** Adds a new project to the database */
   const add = () => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -100,6 +110,7 @@ export function NewObjectScreen({ route, navigation }) {
     });
   };
 
+  /** Updates an existing project in the database */
   const update = () => {
     db.transaction((tx) => {
       tx.executeSql(

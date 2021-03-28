@@ -91,6 +91,9 @@ function Windows({ navigation }) {
     });
   });
 
+  /** Deletes a window from the database
+   * @param {*} id - The window id of the project to be deleted.
+   */
   const deleteWindow = (id) => {
     db.transaction(
       (tx) => {

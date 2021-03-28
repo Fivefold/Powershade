@@ -97,6 +97,9 @@ function Projects({ navigation }) {
   const [projects, setProjects] = React.useState(null);
   const [selectedObject, setSelectedObject] = React.useState();
 
+  /** Sets the active project by updating the specific field in the database.
+   * @param {*} id - The project id to set the active project to.
+   */
   const setActiveProject = (id) => {
     setSelectedObject(id);
     db.transaction(
@@ -117,6 +120,9 @@ function Projects({ navigation }) {
     );
   };
 
+  /** Deletes a project from the database
+   * @param {*} id - The project id of the project to be deleted.
+   */
   const deleteProject = (id) => {
     db.transaction(
       (tx) => {

@@ -45,6 +45,7 @@ const DeleteDialog = (props) => {
 };
 
 const WindowWarnings = (props) => {
+  // Add Menu entries for warnings if any warning flags are in the props.
   let noDimensions = (
     <Menu.Item
       key="noDimensions"
@@ -83,11 +84,6 @@ const WindowWarnings = (props) => {
     array.push(<Divider key="divider" />);
     return array;
   }
-
-  // if (props.noDimensions && props.fieldsIncomplete && props.noMeasurement)
-  //   return [noDimensions, noFields, noMeasurement];
-  // else if
-  // else return null;
 };
 
 export const EditDeleteMenu = (props) => {

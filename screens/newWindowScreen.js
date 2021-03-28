@@ -50,7 +50,10 @@ export function NewWindowScreen({ route, navigation }) {
     sensorPosV: "10",
   });
 
-  // update a single value in the 'window' state object
+  /** Update or add a single value in the 'window' state object. No nesting.
+   * @param {string} key - The key in the key-value pair
+   * @param {*} value - The value in the key-value pair
+   */
   const setValue = (key, value) => {
     setWindow((oldState) => ({
       ...oldState,
@@ -58,7 +61,10 @@ export function NewWindowScreen({ route, navigation }) {
     }));
   };
 
-  // update a single value in the temporary state
+  /** Update or add a single value in the 'temp' state object. No nesting.
+   * @param {string} key - The key in the key-value pair
+   * @param {*} value - The value in the key-value pair
+   */
   const setTempValue = (key, value) => {
     setTemp((oldState) => ({
       ...oldState,
