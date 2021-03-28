@@ -78,7 +78,7 @@ const WindowWarnings = (props) => {
     array.push(noMeasurement);
   }
 
-  if (array === []) return null;
+  if (array.length === 0) return null;
   else {
     array.push(<Divider key="divider" />);
     return array;
@@ -110,7 +110,7 @@ export const EditDeleteMenu = (props) => {
         onDismiss={closeMenu}
         anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
       >
-        <WindowWarnings {...props} />
+        {props.deleteWindow ? <WindowWarnings {...props} /> : null}
         <Menu.Item
           icon="pencil"
           onPress={() => {
