@@ -122,7 +122,7 @@ export const EditDeleteMenu = (props) => {
                 qr: "",
               });
             // project mode
-            else props.navigation.navigate("editObject", { id: props.id });
+            else props.navigation.navigate("newObject", { id: props.id });
           }}
           title="Bearbeiten"
         />

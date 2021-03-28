@@ -1,7 +1,6 @@
 import React from "react";
-import { View, Button, StyleSheet, SafeAreaView } from "react-native";
+import { View, Button, StyleSheet } from "react-native";
 import {
-  Appbar,
   List,
   IconButton,
   Text,
@@ -11,14 +10,12 @@ import {
   FAB,
   Headline,
 } from "react-native-paper";
-import { CommonActions } from "@react-navigation/native";
+
 import { createStackNavigator } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
 import * as SQLite from "expo-sqlite";
 
-import { WindowListScreen } from "./WindowListScreen";
 import { NewObjectScreen } from "./NewObjectScreen";
-import { EditObjectScreen } from "./EditObjectScreen";
 
 const db = SQLite.openDatabase("test.db");
 
@@ -77,13 +74,6 @@ export function homeStackNavigator() {
           // ),
         }}
       />
-      <HomeStack.Screen
-        name="editObject"
-        component={EditObjectScreen}
-        options={{
-          title: "Objekt bearbeiten",
-        }}
-      />
     </HomeStack.Navigator>
   );
 }
@@ -102,6 +92,7 @@ const ObjectRadioButton = (props) => {
   );
 };
 
+// Creates a list of all projects
 function Projects({ navigation }) {
   const [projects, setProjects] = React.useState(null);
   const [selectedObject, setSelectedObject] = React.useState();
@@ -151,7 +142,7 @@ function Projects({ navigation }) {
         [],
         (_, { rows: { _array } }) => setActiveProject(_array[0].value),
         (t, error) => {
-          console.log(error);
+          console.log("hell");
         }
       );
     });
@@ -227,13 +218,7 @@ export function HomeScreen({ route, navigation }) {
         style={styles.fab}
         icon="plus"
         label="Objekt"
-        onPress={() =>
-          navigation.dispatch(
-            CommonActions.navigate({
-              name: "newObject",
-            })
-          )
-        }
+        onPress={() => navigation.navigate("newObject", { id: "" })}
       />
     </View>
   );

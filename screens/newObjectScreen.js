@@ -5,7 +5,22 @@ import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabase("test.db");
 
-export function NewObjectScreen({ navigation }) {
+/** Converts the values in a (nested) object to strings.
+ * @param {object} o - The object which values should be converted
+ */
+function toString(o) {
+  Object.keys(o).forEach((k) => {
+    if (typeof o[k] === "object") {
+      return toString(o[k]);
+    }
+
+    o[k] = "" + o[k];
+  });
+
+  return o;
+}
+
+export function NewObjectScreen({ route, navigation }) {
   const [project, setProject] = React.useState({
     id: "",
     customer: "",
@@ -22,6 +37,30 @@ export function NewObjectScreen({ navigation }) {
     zip: false,
     city: false,
   });
+
+  React.useEffect(() => {
+    if (!(route.params.id === "")) {
+      db.transaction(
+        (tx) => {
+          // get the project to edit for filling the forms
+          tx.executeSql(
+            `SELECT 
+            id, customer, street, number, zip, city 
+            FROM projects
+            WHERE id = ?;`,
+            [route.params.id],
+            (_, { rows: { _array } }) => {
+              setProject(toString(_array[0]));
+            },
+            (t, error) => {
+              console.log(error);
+            }
+          );
+        },
+        (t) => console.log("EditObjectScreen SQL query: " + t)
+      );
+    }
+  }, []);
 
   let incomplete =
     Object.values(inputErrors).includes(true) ||
@@ -57,6 +96,32 @@ export function NewObjectScreen({ navigation }) {
           project.zip,
           project.city,
         ]
+      );
+    });
+  };
+
+  const update = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `UPDATE projects 
+          SET customer = ?, 
+              street = ?, 
+              number = ?, 
+              zip = ?, 
+              city = ?
+          WHERE id = ?;`,
+        [
+          project.customer,
+          project.street,
+          project.number,
+          project.zip,
+          project.city,
+          project.id,
+        ],
+        null,
+        (t, error) => {
+          console.log(error);
+        }
       );
     });
   };
@@ -207,7 +272,7 @@ export function NewObjectScreen({ navigation }) {
         icon="content-save"
         label="Speichern"
         onPress={() => {
-          add();
+          route.params.id === "" ? add() : update();
           navigation.navigate("selectObject");
         }}
       />
