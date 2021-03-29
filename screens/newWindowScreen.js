@@ -8,6 +8,7 @@ import {
   Subheading,
   Caption,
   FAB,
+  HelperText,
 } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
@@ -31,13 +32,13 @@ export function NewWindowScreen({ route, navigation }) {
   // The data of the newly created window.
   const [window, setWindow] = React.useState({
     name: "",
-    annotations: "",
     width: "",
     height: "",
     sensorCorner: "upperLeft",
     sensorPosH: "10",
     sensorPosV: "10",
     qr: "",
+    annotations: "",
   });
 
   /* Temporary state to store input field texts during entry.
@@ -49,6 +50,20 @@ export function NewWindowScreen({ route, navigation }) {
     sensorPosH: "10",
     sensorPosV: "10",
   });
+
+  // Error flags for each input field. Used for input validation.
+  const [inputErrors, setInputErrors] = React.useState({
+    name: false,
+    width: false,
+    height: false,
+    sensorPosH: false,
+    sensorPosV: false,
+  });
+
+  let inputError = Object.values(inputErrors).includes(true);
+
+  const fpNumberDot = RegExp("^([0-9]+([.][0-9]*)?|[.][0-9]+)$");
+  const fpNumberComma = RegExp("^([0-9]+([,][0-9]*)?|[,][0-9]+)$");
 
   /** Update or add a single value in the 'window' state object. No nesting.
    * @param {string} key - The key in the key-value pair
@@ -67,6 +82,17 @@ export function NewWindowScreen({ route, navigation }) {
    */
   const setTempValue = (key, value) => {
     setTemp((oldState) => ({
+      ...oldState,
+      [key]: value,
+    }));
+  };
+
+  /** Update or add a single value in the 'error' state object. No nesting.
+   * @param {string} key - The key in the key-value pair
+   * @param {*} value - The value in the key-value pair
+   */
+  const setError = (key, value) => {
+    setInputErrors((oldState) => ({
       ...oldState,
       [key]: value,
     }));
@@ -243,7 +269,17 @@ export function NewWindowScreen({ route, navigation }) {
           <TextInput
             label="Raum-/Fenstername"
             value={window.name}
-            onChangeText={(text) => setValue("name", text)}
+            error={inputErrors.name}
+            onChangeText={(text) => {
+              setValue("name", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "") ? setError("name", false) : setError("name", true);
+            }}
+            onBlur={() =>
+              window.name === ""
+                ? setError("name", true)
+                : setError("name", false)
+            }
             style={styles.windowNameInput}
             underlineColor={colors.white.medium_high_emph}
             theme={{
@@ -254,6 +290,13 @@ export function NewWindowScreen({ route, navigation }) {
               },
             }}
           />
+          <HelperText
+            type="error"
+            visible={inputErrors.name}
+            style={inputErrors.name ? { color: "#F44" } : { display: "none" }}
+          >
+            Raum-/Fenstername darf nicht leer sein
+          </HelperText>
           <View style={styles.measurementContainer}>
             <Caption style={{ color: colors.white.high_emph }}>
               MESSUNGSSTATUS
@@ -276,8 +319,16 @@ export function NewWindowScreen({ route, navigation }) {
             mode="outlined"
             keyboardType="number-pad"
             value={temp.width}
-            onChangeText={(text) => setTempValue("width", text)}
-            onBlur={() => setValue("width", temp.width)}
+            error={inputErrors.width}
+            onChangeText={(text) => {
+              setTempValue("width", text);
+              fpNumberDot.test(text) || text === ""
+                ? setError("width", false)
+                : setError("width", true);
+            }}
+            onBlur={() => {
+              inputErrors.width ? null : setValue("width", temp.width);
+            }}
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
@@ -286,11 +337,32 @@ export function NewWindowScreen({ route, navigation }) {
             mode="outlined"
             keyboardType="number-pad"
             value={temp.height}
-            onChangeText={(text) => setTempValue("height", text)}
-            onBlur={() => setValue("height", temp.height)}
+            error={inputErrors.height}
+            onChangeText={(text) => {
+              setTempValue("height", text);
+              fpNumberDot.test(text) || text === ""
+                ? setError("height", false)
+                : setError("height", true);
+            }}
+            onBlur={() =>
+              inputErrors.height ? null : setValue("height", temp.height)
+            }
             style={styles.halfTextInput}
             right={<TextInput.Affix text="cm" />}
           />
+          <HelperText
+            type="error"
+            visible={inputErrors.width || inputErrors.height}
+            style={
+              inputErrors.width || inputErrors.height
+                ? null
+                : { display: "none" }
+            }
+          >
+            Breite und Höhe müssen in (Komma-)Zahlen eingeben oder leer gelassen
+            werden.
+          </HelperText>
+
           <WindowPreview
             width={window.width}
             height={window.height}
@@ -309,8 +381,18 @@ export function NewWindowScreen({ route, navigation }) {
               mode="outlined"
               keyboardType="number-pad"
               value={temp.sensorPosH}
-              onChangeText={(text) => setTempValue("sensorPosH", text)}
-              onBlur={() => setValue("sensorPosH", temp.sensorPosH)}
+              error={inputErrors.sensorPosH}
+              onChangeText={(text) => {
+                setTempValue("sensorPosH", text);
+                fpNumberDot.test(text)
+                  ? setError("sensorPosH", false)
+                  : setError("sensorPosH", true);
+              }}
+              onBlur={() =>
+                inputErrors.sensorPosH
+                  ? null
+                  : setValue("sensorPosH", temp.sensorPosH)
+              }
               style={styles.fullTextInput}
               right={<TextInput.Affix text="cm" />}
             />
@@ -319,11 +401,33 @@ export function NewWindowScreen({ route, navigation }) {
               mode="outlined"
               keyboardType="number-pad"
               value={temp.sensorPosV}
-              onChangeText={(text) => setTempValue("sensorPosV", text)}
-              onBlur={() => setValue("sensorPosV", temp.sensorPosV)}
+              error={inputErrors.sensorPosV}
+              onChangeText={(text) => {
+                setTempValue("sensorPosV", text);
+                fpNumberDot.test(text)
+                  ? setError("sensorPosV", false)
+                  : setError("sensorPosV", true);
+              }}
+              onBlur={() =>
+                inputErrors.sensorPosV
+                  ? null
+                  : setValue("sensorPosH", temp.sensorPosV)
+              }
               style={styles.fullTextInput}
               right={<TextInput.Affix text="cm" />}
             />
+            <HelperText
+              type="error"
+              visible={inputErrors.sensorPosH || inputErrors.sensorPosV}
+              style={
+                inputErrors.sensorPosH || inputErrors.sensorPosV
+                  ? null
+                  : { display: "none" }
+              }
+            >
+              Abstände müssen in (Komma-)Zahlen eingeben werden und dürfen nicht
+              leer sein.
+            </HelperText>
           </View>
           <View style={styles.qrRow}>
             <IconButton
@@ -354,6 +458,7 @@ export function NewWindowScreen({ route, navigation }) {
       <View style={styles.fabView}>
         <FAB
           style={styles.fab}
+          disabled={inputError}
           icon="content-save"
           label="Speichern"
           onPress={() => {
