@@ -48,15 +48,6 @@ export function windowStackNavigator() {
         component={NewWindowScreen}
         options={{
           title: "Neues Fenster erstellen",
-          headerRight: () => (
-            <View style={styles.stackIcons}>
-              <IconButton
-                icon="content-save"
-                color={colors.white.high_emph}
-                onPress={() => console.log("Pressed save window")}
-              />
-            </View>
-          ),
         }}
       />
 
@@ -71,6 +62,45 @@ export function windowStackNavigator() {
   );
 }
 
+/** Add up to three red icons in a row showing if any fields of a window are
+ * missing. Each icon has an assigned boolean prop.
+ */
+const IncompleteIcon = (props) => {
+  if (props.fieldsIncomplete || props.measureIncomplete || props.noDimensions)
+    return (
+      <View style={styles.windowEntryDesc}>
+        <Text style={{ fontSize: 16 }}>{props.name}</Text>
+        {props.fieldsIncomplete ? (
+          <IconButton
+            icon="qrcode"
+            color="red"
+            size={22}
+            style={styles.incompleteIcon}
+          />
+        ) : null}
+        {props.measureIncomplete ? (
+          <IconButton
+            icon="crosshairs-question"
+            color="red"
+            size={22}
+            style={styles.incompleteIcon}
+          />
+        ) : null}
+        {props.noDimensions ? (
+          <IconButton
+            icon="application"
+            color="red"
+            size={22}
+            style={styles.incompleteIcon}
+          />
+        ) : null}
+      </View>
+    );
+  else return <Text>{props.name}</Text>;
+};
+
+/** Creates a list of windows of the active project.
+ */
 function Windows({ navigation }) {
   const [windows, setWindows] = React.useState(null);
 
@@ -125,8 +155,25 @@ function Windows({ navigation }) {
       {windows.map(({ id, name, width, height, z_height, qr }) => (
         <View key={id}>
           <List.Item
-            title={name}
-            description={`${width} cm x ${height} cm - Höhe UK: ${z_height} m`}
+            title={
+              <IncompleteIcon
+                name={name}
+                fieldsIncomplete={qr === "" || qr === null}
+                measureIncomplete={z_height == "" || z_height === null}
+                noDimensions={width === "" || height === ""}
+              />
+            }
+            description={
+              <Text>
+                {width === "" || width === null // Show dimensions
+                  ? null
+                  : `${width} cm x ${height} cm`}
+                {!((width === "" || width === null) && z_height === null)
+                  ? " - " // Connector
+                  : null}
+                {z_height === null ? null : `Höhe UK: ${z_height} m`}
+              </Text>
+            }
             right={() => (
               <View style={styles.stackIcons}>
                 <WindowThumbnail
@@ -191,5 +238,17 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  windowEntryDesc: {
+    flexDirection: "row",
+    fontSize: 22,
+  },
+  incompleteIcon: {
+    borderRadius: 0,
+    width: 23,
+    height: 23,
+    alignSelf: "center",
+    margin: 0,
+    marginLeft: 5,
   },
 });

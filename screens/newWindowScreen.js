@@ -19,6 +19,10 @@ import { WindowPreview } from "../components/WindowPreview";
 
 const db = SQLite.openDatabase("test.db");
 
+/** Input screen for creating a new window. Inputs for various metadata (name,
+ * dimensions, comments) as well as a button with a redirect to a QR scanner and
+ * a button to initiate the measurements.
+ */
 export function NewWindowScreen({ route, navigation }) {
   // The active project
   const [project, setProject] = React.useState({
@@ -60,7 +64,8 @@ export function NewWindowScreen({ route, navigation }) {
     sensorPosV: false,
   });
 
-  let inputError = Object.values(inputErrors).includes(true);
+  let inputError =
+    Object.values(inputErrors).includes(true) || window.name === "";
 
   const fpNumberDot = RegExp("^([0-9]+([.][0-9]*)?|[.][0-9]+)$");
   const fpNumberComma = RegExp("^([0-9]+([,][0-9]*)?|[,][0-9]+)$");
@@ -359,8 +364,8 @@ export function NewWindowScreen({ route, navigation }) {
                 : { display: "none" }
             }
           >
-            Breite und Höhe müssen in (Komma-)Zahlen eingeben oder leer gelassen
-            werden.
+            Breite und Höhe müssen in (Komma-)Zahlen eingegeben oder leer
+            gelassen werden.
           </HelperText>
 
           <WindowPreview
