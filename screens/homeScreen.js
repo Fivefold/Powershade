@@ -132,17 +132,19 @@ function Projects(props) {
 
   // Get the active project from db
   React.useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `SELECT value FROM settings WHERE key = "active_project";`,
-        [],
-        (_, { rows: { _array } }) => setActiveProject(_array[0].value),
-        (t, error) => {
-          console.log(error);
-        }
-      );
+    props.navigation.addListener("focus", () => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT value FROM settings WHERE key = "active_project";`,
+          [],
+          (_, { rows: { _array } }) => setActiveProject(_array[0].value),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
     });
-  }, []);
+  }, [props.navigation]);
 
   // Update projects from db
   React.useEffect(() => {
