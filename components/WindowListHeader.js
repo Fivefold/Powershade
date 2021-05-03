@@ -57,7 +57,11 @@ function ActiveProject() {
   });
 
   if (activeProject === null || activeProject.length === 0) {
-    return <Text>Keine Projekte angelegt</Text>;
+    return (
+      <View style={{ width: "100%" }}>
+        {/* <Text>Keine Projekte angelegt</Text>; */}
+      </View>
+    );
   }
 
   return (
@@ -79,7 +83,7 @@ function ActiveProject() {
   );
 }
 
-export function WindowListHeader({ navigation, previous }) {
+export const WindowListHeader = (props) => {
   const [activeProject, setActiveProject] = React.useState(null);
 
   React.useEffect(() => {
@@ -107,14 +111,14 @@ export function WindowListHeader({ navigation, previous }) {
 
   return (
     <Appbar.Header style={styles.appbar}>
-      {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
+      {/* {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null} */}
       <Appbar.Content title="Fensterliste" />
       {
         <View style={styles.stackIcons}>
           <IconButton
             icon="magnify"
             color={colors.white.high_emph}
-            onPress={() => console.log("Pressed search")}
+            onPress={() => props.toggleSearchBar(props.searchBarVisible)}
           />
           <IconButton
             icon="download"
@@ -126,7 +130,7 @@ export function WindowListHeader({ navigation, previous }) {
       <ActiveProject />
     </Appbar.Header>
   );
-}
+};
 
 const styles = StyleSheet.create({
   appbar: {

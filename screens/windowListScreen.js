@@ -8,6 +8,7 @@ import {
   Divider,
   FAB,
   Headline,
+  Searchbar,
 } from "react-native-paper";
 import { createStackNavigator } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
@@ -36,13 +37,7 @@ export function windowStackNavigator() {
         headerTitleStyle: {},
       }}
     >
-      <WindowStack.Screen
-        name="windowList"
-        component={windowListScreen}
-        options={{
-          header: (props) => <WindowListHeader {...props} />,
-        }}
-      />
+      <WindowStack.Screen name="windowList" component={windowListScreen} />
       <WindowStack.Screen
         name="newWindow"
         component={NewWindowScreen}
@@ -101,25 +96,29 @@ const IncompleteIcon = (props) => {
 
 /** Creates a list of windows of the active project.
  */
-function Windows({ navigation }) {
+function Windows(props) {
   const [windows, setWindows] = React.useState(null);
+  const [visibleWindows, setVisibleWindows] = React.useState(null);
 
+  // Get windows from db
   React.useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `SELECT id, project, name, width, height, z_height, qr FROM windows
+    props.navigation.addListener("focus", () => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT id, project, name, width, height, z_height, qr FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
             settings.key = 'active_project');`,
-        [],
-        (_, { rows: { _array } }) => setWindows(_array),
-        (t, error) => {
-          console.log(error);
-        }
-      );
+          [],
+          (_, { rows: { _array } }) => setWindows(_array),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
     });
-  });
+  }, [props.navigation]);
 
   /** Deletes a window from the database
    * @param {*} id - The window id of the project to be deleted.
@@ -146,13 +145,32 @@ function Windows({ navigation }) {
     );
   };
 
+  // Update visible windows when the windows array changes
+  React.useEffect(() => {
+    !(props.searchQuery === "") ? null : setVisibleWindows(windows);
+    // !(props.searchQuery === "") ? alert("query") : alert("setvisiblewindows");
+  }, [windows]);
+
+  // Filter windows when searching
+  React.useEffect(() => {
+    if (props.searchBarVisible) {
+      setVisibleWindows(
+        windows.filter((p) => RegExp(props.searchQuery, "i").test(p.name))
+      );
+    } else {
+      setVisibleWindows(windows);
+    }
+  }, [props.searchQuery, props.searchBarVisible]);
+
   if (windows === null || windows.length === 0) {
     return <Headline style={{ padding: 13 }}>Keine Fenster angelegt</Headline>;
+  } else if (visibleWindows === null || visibleWindows.length === 0) {
+    return <View></View>;
   }
 
   return (
     <View>
-      {windows.map(({ id, name, width, height, z_height, qr }) => (
+      {visibleWindows.map(({ id, name, width, height, z_height, qr }) => (
         <View key={id}>
           <List.Item
             title={
@@ -190,7 +208,7 @@ function Windows({ navigation }) {
                   noDimensions={width === "" || height === ""}
                   fieldsIncomplete={qr === "" || qr === null}
                   measureIncomplete={z_height == "" || z_height === null}
-                  navigation={navigation}
+                  navigation={props.navigation}
                 />
               </View>
             )}
@@ -203,11 +221,63 @@ function Windows({ navigation }) {
   );
 }
 
+/** Search bar for filtering objects. Shown directly under the header.
+ */
+const ObjectSearchBar = (props) => {
+  props.searchBarVisible ? null : setSearchQuery("");
+
+  return (
+    <Searchbar
+      placeholder="Objektname"
+      onChangeText={(query) => props.setSearchQuery(query)}
+      value={props.searchQuery}
+    />
+  );
+};
+
 export function windowListScreen({ navigation }) {
+  const [searchBarVisible, setSearchBarVisible] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const toggleSearchBar = (searchBarVisible) => {
+    if (searchBarVisible) {
+      setSearchBarVisible(false);
+      setSearchQuery("");
+    } else {
+      setSearchBarVisible(true);
+    }
+  };
+
+  /** WindowlistScreen uses a custom Screen header component. It's set from here
+   * to give access to props and context of the screen, needed to implement the
+   * search bar
+   */
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      header: () => (
+        <WindowListHeader
+          searchBarVisible={searchBarVisible}
+          toggleSearchBar={toggleSearchBar}
+        />
+      ),
+    });
+  }, [navigation, searchBarVisible]);
+
   return (
     <View style={styles.container}>
+      {searchBarVisible ? (
+        <ObjectSearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchBarVisible={searchBarVisible}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <Windows navigation={navigation} />
+        <Windows
+          navigation={navigation}
+          searchQuery={searchQuery}
+          searchBarVisible={searchBarVisible}
+        />
       </ScrollView>
 
       <FAB
