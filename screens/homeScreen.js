@@ -244,6 +244,19 @@ export function HomeScreen({ route, navigation }) {
   const [searchBarVisible, setSearchBarVisible] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
+  /** Toggle search bar visibility and clear the query when the bar gets hidden
+   * @param {boolean} searchBarVisible - the state variable for search bar
+   * visibility
+   */
+  const toggleSearchBar = (searchBarVisible) => {
+    if (searchBarVisible) {
+      setSearchBarVisible(false);
+      setSearchQuery("");
+    } else {
+      setSearchBarVisible(true);
+    }
+  };
+
   /** Models the two Buttons on the right of the header, especially the search
    * button, which is used to toggle visibility of the search bar.
    */
@@ -255,9 +268,7 @@ export function HomeScreen({ route, navigation }) {
             icon="magnify"
             color={colors.white.high_emph}
             onPress={() => {
-              searchBarVisible
-                ? setSearchBarVisible(false)
-                : setSearchBarVisible(true);
+              toggleSearchBar(searchBarVisible);
             }}
             style={
               searchBarVisible
