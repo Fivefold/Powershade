@@ -160,7 +160,7 @@ function Projects(props) {
         );
       });
     });
-  }, [props.navigation, props.searchQuery]);
+  }, [props.navigation]);
 
   // Update visible objects when the objects array changes
   React.useEffect(() => {
@@ -171,7 +171,7 @@ function Projects(props) {
   React.useEffect(() => {
     if (props.searchBarVisible) {
       setVisibleProjects(
-        projects.filter((p) => RegExp(props.searchQuery).test(p.customer))
+        projects.filter((p) => RegExp(props.searchQuery, "i").test(p.customer))
       );
     } else {
       setVisibleProjects(projects);
