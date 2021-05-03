@@ -9,8 +9,9 @@ import {
   Divider,
   FAB,
   Headline,
+  Searchbar,
 } from "react-native-paper";
-
+import { useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { ScrollView } from "react-native-gesture-handler";
 import * as SQLite from "expo-sqlite";
@@ -42,20 +43,6 @@ export function homeStackNavigator() {
         component={HomeScreen}
         options={{
           title: "Aktives Objekt auswählen",
-          headerRight: () => (
-            <View style={styles.stackIcons}>
-              <IconButton
-                icon="magnify"
-                color={colors.white.high_emph}
-                onPress={() => console.log("Pressed search")}
-              />
-              <IconButton
-                icon="download"
-                color={colors.white.high_emph}
-                onPress={() => console.log("Pressed download")}
-              />
-            </View>
-          ),
         }}
       />
       <HomeStack.Screen
@@ -93,9 +80,11 @@ const ObjectRadioButton = (props) => {
 };
 
 // Creates a list of all projects
-function Projects({ navigation }) {
-  const [projects, setProjects] = React.useState(null);
+function Projects(props) {
+  const [projects, setProjects] = React.useState([]);
   const [selectedObject, setSelectedObject] = React.useState();
+
+  const [visibleProjects, setVisibleProjects] = React.useState(null);
 
   /** Sets the active project by updating the specific field in the database.
    * @param {*} id - The project id to set the active project to.
@@ -141,6 +130,7 @@ function Projects({ navigation }) {
     );
   };
 
+  // Get the active project from db
   React.useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -148,24 +138,45 @@ function Projects({ navigation }) {
         [],
         (_, { rows: { _array } }) => setActiveProject(_array[0].value),
         (t, error) => {
-          console.log("hell");
+          console.log(error);
         }
       );
     });
   }, []);
 
+  // Update projects from db
   React.useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `select id, customer, street, number, zip, city from projects;`,
-        [],
-        (_, { rows: { _array } }) => setProjects(_array),
-        (t, error) => {
-          console.log(error);
-        }
-      );
+    props.navigation.addListener("focus", () => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `select id, customer, street, number, zip, city from projects;`,
+          [],
+          (_, { rows: { _array } }) => {
+            setProjects(_array);
+          },
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
     });
-  });
+  }, [props.navigation, props.searchQuery]);
+
+  // Update visible objects when the objects array changes
+  React.useEffect(() => {
+    !(props.searchQuery === "") ? null : setVisibleProjects(projects);
+  }, [projects]);
+
+  // Filter objects when searching
+  React.useEffect(() => {
+    if (props.searchBarVisible) {
+      setVisibleProjects(
+        projects.filter((p) => RegExp(props.searchQuery).test(p.customer))
+      );
+    } else {
+      setVisibleProjects(projects);
+    }
+  }, [props.searchQuery, props.searchBarVisible]);
 
   if (projects === null || projects.length === 0) {
     return (
@@ -177,7 +188,7 @@ function Projects({ navigation }) {
 
   return (
     <View>
-      {projects.map(({ id, customer, street, number, zip, city }) => (
+      {visibleProjects.map(({ id, customer, street, number, zip, city }) => (
         <View key={id}>
           <List.Item
             key={id}
@@ -198,7 +209,11 @@ function Projects({ navigation }) {
                   id={id}
                   name={customer}
                   deleteProject={deleteProject}
-                  navigation={navigation}
+                  navigation={props.navigation}
+                  projects={projects}
+                  setProjects={setProjects}
+                  visibleProjects={visibleProjects}
+                  setVisibleProjects={setVisibleProjects}
                 />
               </View>
             )}
@@ -211,13 +226,72 @@ function Projects({ navigation }) {
   );
 }
 
+/** Search bar for filtering objects. Shown directly under the header.
+ */
+const ObjectSearchBar = (props) => {
+  props.searchBarVisible ? null : setSearchQuery("");
+
+  return (
+    <Searchbar
+      placeholder="Objektname"
+      onChangeText={(query) => props.setSearchQuery(query)}
+      value={props.searchQuery}
+    />
+  );
+};
+
 export function HomeScreen({ route, navigation }) {
-  //const [selectedObject, setSelectedObject] = React.useState();
+  const [searchBarVisible, setSearchBarVisible] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  /** Models the two Buttons on the right of the header, especially the search
+   * button, which is used to toggle visibility of the search bar.
+   */
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.stackIcons}>
+          <IconButton
+            icon="magnify"
+            color={colors.white.high_emph}
+            onPress={() => {
+              searchBarVisible
+                ? setSearchBarVisible(false)
+                : setSearchBarVisible(true);
+            }}
+            style={
+              searchBarVisible
+                ? { backgroundColor: colors.white.medium_emph }
+                : null
+            }
+          />
+
+          <IconButton
+            icon="download"
+            color={colors.white.high_emph}
+            onPress={() => console.log("Pressed download")}
+          />
+        </View>
+      ),
+    });
+  }, [navigation, searchBarVisible]);
 
   return (
     <View style={styles.container}>
+      {searchBarVisible ? (
+        <ObjectSearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchBarVisible={searchBarVisible}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
-        <Projects navigation={navigation} />
+        <Projects
+          navigation={navigation}
+          route={route}
+          searchQuery={searchQuery}
+          searchBarVisible={searchBarVisible}
+        />
       </ScrollView>
 
       <FAB
@@ -249,12 +323,9 @@ const styles = StyleSheet.create({
     right: 4,
   },
   appbar: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingTop: StatusBarHeight,
-    height: 56 + StatusBarHeight,
+    //height: 150,
+    width: "100%",
+    flexWrap: "wrap",
   },
   listEntry: {
     alignItems: "center",
@@ -274,28 +345,3 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
 });
-
-/*
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          header: (props) => <CustomNavigationBar {...props} />,
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
-      </Stack.Navigator>
-      */
-
-/* --- old Appbar on top. Maybe useful for later 
-      <Appbar style={styles.appbar}>
-        <Appbar.Content title="Aktives Objekt auswählen" />
-        <Appbar.Action
-          icon="magnify"
-          onPress={() => console.log("Pressed search")}
-        />
-        <Appbar.Action
-          icon="download"
-          onPress={() => console.log("Pressed export")}
-        />
-      </Appbar> */

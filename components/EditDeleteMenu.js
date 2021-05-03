@@ -31,7 +31,15 @@ const DeleteDialog = (props) => {
                 // window mode
                 if (props.deleteWindow) props.deleteWindow(props.id);
                 // project mode
-                else props.deleteProject(props.id);
+                else {
+                  props.deleteProject(props.id);
+                  props.setProjects(
+                    props.projects.filter((p) => !(p.id === props.id))
+                  );
+                  props.setVisibleProjects(
+                    props.visibleProjects.filter((p) => !(p.id === props.id))
+                  );
+                }
                 props.hideDialog;
               }}
             >

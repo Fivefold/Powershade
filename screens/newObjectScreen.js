@@ -6,7 +6,7 @@ import * as SQLite from "expo-sqlite";
 const db = SQLite.openDatabase("test.db");
 
 /** Converts the values in a (nested) object to strings.
- * @param {object} o - The object which values should be converted
+ * @param {object} o - The object whose values should be converted
  */
 function toString(o) {
   Object.keys(o).forEach((k) => {
@@ -284,7 +284,7 @@ export function NewObjectScreen({ route, navigation }) {
         label="Speichern"
         onPress={() => {
           route.params.id === "" ? add() : update();
-          navigation.navigate("selectObject");
+          navigation.navigate("selectObject", { projectChange: true });
         }}
       />
     </View>
