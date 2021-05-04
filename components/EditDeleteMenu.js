@@ -124,6 +124,7 @@ export const EditDeleteMenu = (props) => {
               props.navigation.navigate("newWindow", {
                 windowId: props.id,
                 qr: "",
+                name: "Fenster bearbeiten",
               });
             // project mode
             else
