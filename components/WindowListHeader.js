@@ -67,7 +67,7 @@ function ActiveProject() {
   return (
     <View style={{ width: "100%" }}>
       {activeProject.map(({ id, customer, street, number, zip, city }) => (
-        <View key={id} style={{ width: "100%" }}>
+        <View key={id} style={{ width: "100%", marginTop: -15 }}>
           <List.Item
             title={customer}
             description={`${street} ${number}, ${zip} ${city}`}
@@ -134,18 +134,20 @@ export const WindowListHeader = (props) => {
 
 const styles = StyleSheet.create({
   appbar: {
-    height: 150,
+    height: 130,
+    marginTop: 28,
     width: "100%",
     flexWrap: "wrap",
   },
   stackIcons: {
     flexDirection: "row",
-    right: 4,
+    right: 0,
   },
   numberOfWin: {
     color: colors.white.high_emph,
     alignSelf: "center",
     paddingHorizontal: 13,
+    marginTop: -5,
   },
   listTheme: {},
 });
