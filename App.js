@@ -20,7 +20,7 @@ import {
 } from "./screens/WindowListScreen";
 import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
 
-export const db = SQLite.openDatabase("test.db");
+export const db = SQLite.openDatabase("powershade.db");
 const Tab = createMaterialBottomTabNavigator();
 
 export const theme = {
@@ -40,21 +40,18 @@ export default function App() {
         tx.executeSql(
           `CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY NOT null, 
+            last_edit INTEGER,
             customer TEXT, 
             street TEXT,
             number TEXT,
             zip INTEGER,
             city TEXT
-          );`,
-          [],
-          console.log("create table success"),
-          (t, error) => {
-            console.log(error);
-          }
+          );`
         );
         tx.executeSql(
           `CREATE TABLE IF NOT EXISTS windows (
             id INTEGER PRIMARY KEY NOT null, 
+            last_edit INTEGER,
             project INTEGER,
             name TEXT, 
             width REAL,
@@ -64,9 +61,9 @@ export default function App() {
             sensorPosV REAL,
             lat REAL,
             long REAL,
-            z_height REAL,
+            alt REAL,
             azimuth REAL,
-            angle REAL,
+            inclination REAL,
             qr TEXT,
             annotations TEXT
           );`
