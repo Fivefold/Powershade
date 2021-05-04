@@ -9,6 +9,7 @@ import {
   Caption,
   FAB,
   HelperText,
+  Text,
 } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
@@ -17,7 +18,7 @@ import colors from "../constants/colors";
 import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
 
-const db = SQLite.openDatabase("test.db");
+const db = SQLite.openDatabase("powershade.db");
 
 /** Input screen for creating a new window. Inputs for various metadata (name,
  * dimensions, comments) as well as a button with a redirect to a QR scanner and
@@ -134,7 +135,24 @@ export function NewWindowScreen({ route, navigation }) {
         if (route.params.windowId) {
           // get the window to edit for filling the forms
           tx.executeSql(
-            `SELECT * FROM windows WHERE id = ?;`,
+            `SELECT
+              id,
+              strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit,
+              project, 
+              name, 
+              width, 
+              height,
+              sensorCorner,
+              sensorPosH,
+              sensorPosV, 
+              lat, 
+              long, 
+              alt, 
+              azimuth, 
+              inclination, 
+              qr, 
+              annotations
+            FROM windows WHERE id = ?;`,
             [route.params.windowId],
             (_, { rows: { _array } }) => {
               setWindow(_array[0]);
@@ -160,6 +178,7 @@ export function NewWindowScreen({ route, navigation }) {
     db.transaction((tx) => {
       tx.executeSql(
         `INSERT INTO windows (
+          last_edit,
           project, 
           name, 
           width, 
@@ -169,12 +188,12 @@ export function NewWindowScreen({ route, navigation }) {
           sensorPosV, 
           lat, 
           long, 
-          z_height, 
+          alt, 
           azimuth, 
-          angle, 
+          inclination, 
           qr, 
           annotations) VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        (datetime("now"), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           project.id,
           window.name,
@@ -205,7 +224,8 @@ export function NewWindowScreen({ route, navigation }) {
     db.transaction((tx) => {
       tx.executeSql(
         `UPDATE windows
-          SET name = ?, 
+          SET last_edit = datetime("now"),
+              name = ?, 
               width = ?, 
               height = ?,
               sensorCorner = ?,
@@ -213,9 +233,9 @@ export function NewWindowScreen({ route, navigation }) {
               sensorPosV = ?, 
               lat = ?, 
               long = ?, 
-              z_height = ?, 
+              alt = ?, 
               azimuth = ?, 
-              angle = ?, 
+              inclination = ?, 
               qr = ?, 
               annotations = ?
           WHERE id = ?;`,
@@ -416,7 +436,7 @@ export function NewWindowScreen({ route, navigation }) {
               onBlur={() =>
                 inputErrors.sensorPosV
                   ? null
-                  : setValue("sensorPosH", temp.sensorPosV)
+                  : setValue("sensorPosV", temp.sensorPosV)
               }
               style={styles.fullTextInput}
               right={<TextInput.Affix text="cm" />}
@@ -458,6 +478,11 @@ export function NewWindowScreen({ route, navigation }) {
             onChangeText={(text) => setValue("annotations", text)}
             style={styles.fullTextInput}
           />
+          {window.last_edit === undefined ? null : (
+            <Text style={styles.timestamp}>
+              Letzte Änderung: {window.last_edit}
+            </Text>
+          )}
         </View>
       </ScrollView>
       <View style={styles.fabView}>
@@ -572,6 +597,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
+  },
+  timestamp: {
+    padding: 10,
+    color: colors.black.medium_high_emph,
   },
   fab: {
     position: "absolute",

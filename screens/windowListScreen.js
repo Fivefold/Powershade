@@ -22,7 +22,7 @@ import { QrScanScreen } from "./QrScanScreen";
 import colors from "../constants/colors";
 import { EditDeleteMenu } from "../components/EditDeleteMenu";
 
-const db = SQLite.openDatabase("test.db");
+const db = SQLite.openDatabase("powershade.db");
 const WindowStack = createStackNavigator();
 
 export function windowStackNavigator() {
@@ -98,12 +98,13 @@ function Windows(props) {
   const [windows, setWindows] = React.useState(null);
   const [visibleWindows, setVisibleWindows] = React.useState(null);
 
-  // Get windows from db
+  // Get windows from db and check if projects exist
   React.useEffect(() => {
     props.navigation.addListener("focus", () => {
       db.transaction((tx) => {
+        // Get windows from db
         tx.executeSql(
-          `SELECT id, project, name, width, height, z_height, qr FROM windows
+          `SELECT id, project, name, width, height, alt, qr FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
@@ -128,7 +129,7 @@ function Windows(props) {
         tx.executeSql(`DELETE FROM windows WHERE id = ?`, [id]);
         // update the windows state
         tx.executeSql(
-          `SELECT id, project, name, width, height, z_height FROM windows
+          `SELECT id, project, name, width, height, alt FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
@@ -160,7 +161,9 @@ function Windows(props) {
     }
   }, [props.searchQuery, props.searchBarVisible]);
 
-  if (windows === null || windows.length === 0) {
+  if (props.noProjects === true) {
+    return <Headline style={{ padding: 13 }}>Keine Projekte angelegt</Headline>;
+  } else if (windows === null || windows.length === 0) {
     return <Headline style={{ padding: 13 }}>Keine Fenster angelegt</Headline>;
   } else if (visibleWindows === null || visibleWindows.length === 0) {
     return <View></View>;
@@ -168,14 +171,14 @@ function Windows(props) {
 
   return (
     <View>
-      {visibleWindows.map(({ id, name, width, height, z_height, qr }) => (
+      {visibleWindows.map(({ id, name, width, height, alt, qr }) => (
         <View key={id}>
           <List.Item
             title={
               <IncompleteIcon
                 name={name}
                 fieldsIncomplete={qr === "" || qr === null}
-                measureIncomplete={z_height == "" || z_height === null}
+                measureIncomplete={alt == "" || alt === null}
                 noDimensions={width === "" || height === ""}
               />
             }
@@ -184,10 +187,10 @@ function Windows(props) {
                 {width === "" || width === null // Show dimensions
                   ? null
                   : `${width} cm x ${height} cm`}
-                {!((width === "" || width === null) && z_height === null)
+                {!((width === "" || width === null) && alt === null)
                   ? " - " // Connector
                   : null}
-                {z_height === null ? null : `Höhe UK: ${z_height} m`}
+                {alt === null ? null : `Höhe UK: ${alt} m`}
               </Text>
             }
             right={() => (
@@ -197,7 +200,7 @@ function Windows(props) {
                   height={height}
                   noDimensions={width === "" || height === ""}
                   fieldsIncomplete={qr === "" || qr === null}
-                  measureIncomplete={z_height == ""}
+                  measureIncomplete={alt == ""}
                 />
                 <EditDeleteMenu
                   id={id}
@@ -205,7 +208,7 @@ function Windows(props) {
                   deleteWindow={deleteWindow}
                   noDimensions={width === "" || height === ""}
                   fieldsIncomplete={qr === "" || qr === null}
-                  measureIncomplete={z_height == "" || z_height === null}
+                  measureIncomplete={alt == "" || alt === null}
                   navigation={props.navigation}
                 />
               </View>
@@ -291,6 +294,7 @@ export function windowListScreen({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         <Windows
           navigation={navigation}
+          noProjects={noProjects}
           searchQuery={searchQuery}
           searchBarVisible={searchBarVisible}
         />

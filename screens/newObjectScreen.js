@@ -1,9 +1,17 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { FAB, HelperText, TextInput, Text } from "react-native-paper";
+import {
+  FAB,
+  HelperText,
+  TextInput,
+  Text,
+  Paragraph,
+} from "react-native-paper";
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabase("test.db");
+import colors from "../constants/colors";
+
+const db = SQLite.openDatabase("powershade.db");
 
 /** Converts the values in a (nested) object to strings.
  * @param {object} o - The object whose values should be converted
@@ -23,6 +31,7 @@ function toString(o) {
 export function NewObjectScreen({ route, navigation }) {
   const [project, setProject] = React.useState({
     id: "",
+    last_edit: "",
     customer: "",
     street: "",
     number: "",
@@ -39,14 +48,15 @@ export function NewObjectScreen({ route, navigation }) {
     city: false,
   });
 
+  // get the project data for filling the forms if editing a project
   React.useEffect(() => {
     if (!(route.params.id === "")) {
       db.transaction(
         (tx) => {
-          // get the project to edit for filling the forms
           tx.executeSql(
             `SELECT 
-            id, customer, street, number, zip, city 
+              id, customer, street, number, zip, city,
+              strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit
             FROM projects
             WHERE id = ?;`,
             [route.params.id],
@@ -97,8 +107,9 @@ export function NewObjectScreen({ route, navigation }) {
   const add = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        `INSERT INTO projects (customer, street, number, zip, city) VALUES
-        (?, ?, ?, ?, ?);`,
+        `INSERT INTO projects (customer, street, number, zip, city, last_edit) 
+        VALUES
+          (?, ?, ?, ?, ?, datetime("now"));`,
         [
           project.customer,
           project.street,
@@ -119,7 +130,8 @@ export function NewObjectScreen({ route, navigation }) {
               street = ?, 
               number = ?, 
               zip = ?, 
-              city = ?
+              city = ?,
+              last_edit = datetime("now")
           WHERE id = ?;`,
         [
           project.customer,
@@ -277,6 +289,12 @@ export function NewObjectScreen({ route, navigation }) {
         Stadt darf nicht leer sein
       </HelperText>
 
+      {project.last_edit === null || project.last_edit.length === 0 ? null : (
+        <Text style={styles.timestamp}>
+          Letzte Änderung: {project.last_edit}
+        </Text>
+      )}
+
       <FAB
         style={styles.fab}
         disabled={incomplete}
@@ -317,6 +335,10 @@ const styles = StyleSheet.create({
     width: "66%",
     marginHorizontal: marginHorizontal,
     marginVertical: marginVertical,
+  },
+  timestamp: {
+    padding: 10,
+    color: colors.black.medium_high_emph,
   },
   appbar: {
     position: "absolute",

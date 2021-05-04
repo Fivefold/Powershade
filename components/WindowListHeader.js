@@ -5,7 +5,7 @@ import * as SQLite from "expo-sqlite";
 
 import colors from "../constants/colors";
 
-const db = SQLite.openDatabase("test.db");
+const db = SQLite.openDatabase("powershade.db");
 
 // Component that shows the active project and number of assigned windows
 function ActiveProject() {

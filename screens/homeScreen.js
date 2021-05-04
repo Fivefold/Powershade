@@ -18,7 +18,7 @@ import * as SQLite from "expo-sqlite";
 
 import { NewObjectScreen } from "./NewObjectScreen";
 
-const db = SQLite.openDatabase("test.db");
+const db = SQLite.openDatabase("powershade.db");
 
 import colors from "../constants/colors";
 import { EditDeleteMenu } from "../components/EditDeleteMenu";
@@ -48,8 +48,9 @@ export function homeStackNavigator() {
       <HomeStack.Screen
         name="newObject"
         component={NewObjectScreen}
-        options={{
-          title: "Neues Objekt erstellen",
+        options={
+          ({ route }) => ({ title: route.params.name })
+          //title: "Neues Objekt erstellen",
           // headerRight: () => (
           //   <View style={styles.stackIcons}>
           //     <IconButton
@@ -59,15 +60,13 @@ export function homeStackNavigator() {
           //     />
           //   </View>
           // ),
-        }}
+        }
       />
     </HomeStack.Navigator>
   );
 }
 
 const ObjectRadioButton = (props) => {
-  const [checked, setChecked] = React.useState(false);
-
   return (
     <View style={styles.objectRadioButton}>
       <RadioButton
