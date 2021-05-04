@@ -137,7 +137,8 @@ function Projects(props) {
         tx.executeSql(
           `SELECT value FROM settings WHERE key = "active_project";`,
           [],
-          (_, { rows: { _array } }) => setActiveProject(_array[0].value),
+          (_, { rows: { _array } }) =>
+            _array[0] === undefined ? null : setActiveProject(_array[0].value),
           (t, error) => {
             console.log(error);
           }
@@ -153,7 +154,11 @@ function Projects(props) {
         tx.executeSql(
           `select id, customer, street, number, zip, city from projects;`,
           [],
-          (_, { rows: { _array } }) => {
+          (_, { rows: { length, _array } }) => {
+            // if there is only one project, automatically set it as active
+            if (length === 1) {
+              setActiveProject(_array[0].id);
+            }
             setProjects(_array);
           },
           (t, error) => {
@@ -311,7 +316,12 @@ export function HomeScreen({ route, navigation }) {
         style={styles.fab}
         icon="plus"
         label="Objekt"
-        onPress={() => navigation.navigate("newObject", { id: "" })}
+        onPress={() =>
+          navigation.navigate("newObject", {
+            id: "",
+            name: "Neues Objekt erstellen",
+          })
+        }
       />
     </View>
   );

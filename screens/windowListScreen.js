@@ -41,9 +41,7 @@ export function windowStackNavigator() {
       <WindowStack.Screen
         name="newWindow"
         component={NewWindowScreen}
-        options={{
-          title: "Neues Fenster erstellen",
-        }}
+        options={({ route }) => ({ title: route.params.name })}
       />
 
       <WindowStack.Screen
@@ -238,6 +236,24 @@ const ObjectSearchBar = (props) => {
 export function windowListScreen({ navigation }) {
   const [searchBarVisible, setSearchBarVisible] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [noProjects, setNoProjects] = React.useState(true);
+
+  // Check if no projects exist. If so, no windows may be created
+  React.useEffect(() => {
+    navigation.addListener("focus", () => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT id FROM projects`,
+          [],
+          (_, { rows: { length } }) =>
+            length === 0 ? setNoProjects(true) : setNoProjects(false),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
+    });
+  }, [navigation]);
 
   const toggleSearchBar = (searchBarVisible) => {
     if (searchBarVisible) {
@@ -284,7 +300,13 @@ export function windowListScreen({ navigation }) {
         style={styles.fab}
         icon="plus"
         label="Fenster"
-        onPress={() => navigation.navigate("newWindow", { qr: "" })}
+        disabled={noProjects ? true : false}
+        onPress={() =>
+          navigation.navigate("newWindow", {
+            qr: "",
+            name: "Neues Fenster erstellen",
+          })
+        }
       />
     </View>
   );
