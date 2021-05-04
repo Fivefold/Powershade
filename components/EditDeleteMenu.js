@@ -25,17 +25,22 @@ const DeleteDialog = (props) => {
             </Paragraph>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={props.hideDialog}>Nein</Button>
+            <Button style={{ minWidth: "20%" }} onPress={props.hideDialog}>
+              Nein
+            </Button>
             <Button
+              style={{ minWidth: "20%" }}
               onPress={() => {
                 // window mode
                 if (props.deleteWindow) props.deleteWindow(props.id);
                 // project mode
                 else {
                   props.deleteProject(props.id);
+                  // delete project from state
                   props.setProjects(
                     props.projects.filter((p) => !(p.id === props.id))
                   );
+                  // delete project from visible-state
                   props.setVisibleProjects(
                     props.visibleProjects.filter((p) => !(p.id === props.id))
                   );
