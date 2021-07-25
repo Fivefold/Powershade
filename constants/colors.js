@@ -14,6 +14,7 @@ export default {
     inactive: "#FFFFFF36",
   },
   black: {
+    highest_emph: "#00000080",
     high_emph: "#00000057",
     medium_high_emph: "#0009",
     medium_emph: "#0000003C",

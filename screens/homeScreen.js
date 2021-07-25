@@ -17,6 +17,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import * as SQLite from "expo-sqlite";
 
 import { NewObjectScreen } from "./NewObjectScreen";
+import { DataExportScreen } from "./DataExportScreen";
 
 const db = SQLite.openDatabase("powershade.db");
 
@@ -61,6 +62,13 @@ export function homeStackNavigator() {
           //   </View>
           // ),
         }
+      />
+      <HomeStack.Screen
+        name="dataExport"
+        component={DataExportScreen}
+        options={{
+          title: "Datenexport",
+        }}
       />
     </HomeStack.Navigator>
   );
@@ -286,7 +294,7 @@ export function HomeScreen({ route, navigation }) {
           <IconButton
             icon="download"
             color={colors.white.high_emph}
-            onPress={() => console.log("Pressed download")}
+            onPress={() => navigation.navigate("dataExport")}
           />
         </View>
       ),
