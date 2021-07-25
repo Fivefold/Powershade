@@ -19,6 +19,7 @@ import * as SQLite from "expo-sqlite";
 const db = SQLite.openDatabase("powershade.db");
 
 import colors from "../constants/colors";
+import { CustomSnackbar } from "../components/CustomSnackbar";
 
 const ObjectCheckbox = (props) => {
   return (
@@ -110,13 +111,48 @@ const ObjectSearchBar = (props) => {
 
 export function DataExportScreen({ navigation }) {
   const [safUri, setSafUri] = React.useState("");
-  const [data, setData] = React.useState({ hits: [] });
   const [searchBarVisible, setSearchBarVisible] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("react");
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [snackbarVisible, setSnackbarVisible] = React.useState(false);
+  const [windows, setWindows] = React.useState({ hits: [] });
   const [projects, setProjects] = React.useState([]);
   const [visibleProjects, setVisibleProjects] = React.useState(null);
   const [selectedObjects, setSelectedObjects] = React.useState(new Set());
   let filesystemPermission;
+
+  // Get windows from db
+  React.useEffect(() => {
+    navigation.addListener("focus", () => {
+      db.transaction((tx) => {
+        // Get windows from db
+        tx.executeSql(
+          `SELECT
+            id,
+            last_edit, 
+            project, 
+            name, 
+            width, 
+            height,
+            sensorCorner,
+            sensorPosH,
+            sensorPosV, 
+            lat, 
+            long, 
+            alt, 
+            azimuth, 
+            inclination, 
+            qr, 
+            annotations
+          FROM windows`,
+          [],
+          (_, { rows: { _array } }) => setWindows(_array),
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
+    });
+  }, [navigation]);
 
   /** Models the search button right of the header which is used to toggle
    * visibility of the search bar.
@@ -169,7 +205,6 @@ export function DataExportScreen({ navigation }) {
     }
   }, [searchQuery, searchBarVisible]);
 
-  //React.useEffect(() => {
   const chooseDir = async () => {
     let ignore = false;
 
@@ -193,7 +228,6 @@ export function DataExportScreen({ navigation }) {
       ignore = true;
     };
   };
-  //}, [query]);
 
   /** Formats a SAF URI to be easier to read by filtering unnecessary parts
    * Example:
@@ -239,23 +273,70 @@ export function DataExportScreen({ navigation }) {
   };
 
   const saveCSV = async (uri) => {
-    let fileUri = await StorageAccessFramework.createFileAsync(
-      uri,
-      "testcsv",
-      "text/csv"
-    );
-    await FileSystem.writeAsStringAsync(
-      fileUri,
-      "hello world,lorem ipsum,column_3,4,5,Änderungen\n" +
-        "12.54,255.47,30,Lorem ipsum dolor sit amet,,1234 Wien Musterstadt\n",
-      {
+    function filterProjectsByID(project) {
+      if (selectedObjects.has(project.id)) return true;
+      else return false;
+    }
+    function filterWindowsByProject(window, projectId) {
+      if (window.project === projectId) return true;
+      else return false;
+    }
+
+    let exportProjects = projects.filter(filterProjectsByID);
+    //console.log(exportProjects);
+
+    exportProjects.map(async ({ id, customer, street, number, zip, city }) => {
+      let exportWindows = windows.filter((window) =>
+        filterWindowsByProject(window, id)
+      );
+      //console.log(JSON.stringify(exportWindows));
+
+      /* Create a filename starting with a timestamp and then adding */
+      let currentDate = new Date();
+      let cDay = currentDate.getDate();
+      cDay = (cDay < 10 ? "0" : "") + cDay;
+      let cMonth = currentDate.getMonth() + 1;
+      cMonth = (cMonth < 10 ? "0" : "") + cMonth;
+      let cYear = currentDate.getFullYear();
+      let timestamp = `${cYear}${cMonth}${cDay}`;
+
+      // Windows does not allow slashes in filenames. Convert them to _
+      let validNumber = number.replace(/\//g, "_");
+
+      // Extract last name
+      let validCustomer = customer.match(/\w+$/);
+      // Change spaces to hyphens (-)
+      let validStreet = street.replace(/ /g, "-");
+      let validCity = city.replace(/ /g, "-");
+      let filename =
+        `${timestamp}_${validCustomer}_${validStreet}_${validNumber}` +
+        `_${zip}_${validCity}`;
+
+      let header = Object.keys(exportWindows[0]);
+      // handling null values
+      let replacer = (key, value) => (value === null ? "" : value);
+      let csv = [
+        header.join(","), // header row
+        ...exportWindows.map((row) =>
+          header
+            .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+            .join(",")
+        ),
+      ].join("\r\n");
+
+      let fileUri = await StorageAccessFramework.createFileAsync(
+        uri,
+        filename,
+        "text/csv"
+      );
+
+      await FileSystem.writeAsStringAsync(fileUri, csv, {
         encoding: FileSystem.EncodingType.UTF8,
-      }
-    );
+      });
+    });
+
     return;
   };
-
-  //let fileUri = documentDirectory + "test.txt";
 
   return (
     <View style={styles.container}>
@@ -316,9 +397,18 @@ export function DataExportScreen({ navigation }) {
         }
         disabled={safUri && selectedObjects.size !== 0 ? false : true}
         onPress={() => {
-          console.log("pressed save on export screen");
           saveCSV(safUri);
+          setSnackbarVisible(true);
         }}
+      />
+      <CustomSnackbar
+        visible={snackbarVisible}
+        setVisible={setSnackbarVisible}
+        text={
+          `${selectedObjects.size} Objekt` +
+          (selectedObjects.size > 1 ? "e" : "") +
+          ` gespeichert in: ${formatSafUri(safUri)}`
+        }
       />
     </View>
   );
