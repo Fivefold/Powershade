@@ -76,10 +76,22 @@ export function NewWindowScreen({ route, navigation }) {
    * @param {*} value - The value in the key-value pair
    */
   const setValue = (key, value) => {
-    setWindow((oldState) => ({
-      ...oldState,
-      [key]: value,
-    }));
+    switch (key) {
+      case "width":
+      case "height":
+      case "sensorPosH":
+      case "sensorPosV":
+        setWindow((oldState) => ({
+          ...oldState,
+          [key]: String(value).replace(",", "."), // Only store fp num in db
+        }));
+        break;
+      default:
+        setWindow((oldState) => ({
+          ...oldState,
+          [key]: value,
+        }));
+    }
   };
 
   /** Update or add a single value in the 'temp' state object. No nesting.
@@ -347,7 +359,7 @@ export function NewWindowScreen({ route, navigation }) {
             error={inputErrors.width}
             onChangeText={(text) => {
               setTempValue("width", text);
-              fpNumberDot.test(text) || text === ""
+              fpNumberDot.test(text) || fpNumberComma.test(text) || text === ""
                 ? setError("width", false)
                 : setError("width", true);
             }}
@@ -365,7 +377,7 @@ export function NewWindowScreen({ route, navigation }) {
             error={inputErrors.height}
             onChangeText={(text) => {
               setTempValue("height", text);
-              fpNumberDot.test(text) || text === ""
+              fpNumberDot.test(text) || fpNumberComma.test(text) || text === ""
                 ? setError("height", false)
                 : setError("height", true);
             }}
@@ -409,7 +421,7 @@ export function NewWindowScreen({ route, navigation }) {
               error={inputErrors.sensorPosH}
               onChangeText={(text) => {
                 setTempValue("sensorPosH", text);
-                fpNumberDot.test(text)
+                fpNumberDot.test(text) || fpNumberComma.test(text)
                   ? setError("sensorPosH", false)
                   : setError("sensorPosH", true);
               }}
@@ -429,7 +441,7 @@ export function NewWindowScreen({ route, navigation }) {
               error={inputErrors.sensorPosV}
               onChangeText={(text) => {
                 setTempValue("sensorPosV", text);
-                fpNumberDot.test(text)
+                fpNumberDot.test(text) || fpNumberComma.test(text)
                   ? setError("sensorPosV", false)
                   : setError("sensorPosV", true);
               }}
