@@ -9,7 +9,10 @@ export const WindowPreview = (props) => {
   // workaround because the width of the window container is unknown
   // but the width of the rightside Sensor Box is fixed.
   const windowSize = useWindowDimensions();
-  const windowsContainerWidth = (windowSize.width - 168) * 0.78;
+  const windowsContainerWidth = windowSize.width - 168 - 30 - 15;
+  /* ^ 168: width of sensorposition box, 30: padding of ScrollContainer
+    ^ 15: marginLeft of ScrollContainer in NewWindowScreen.js
+   */
 
   // At the beginning of a new window there are no dimensions yet.
   // Put in placeholders
@@ -123,8 +126,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    //width: 185,
-    height: 200,
+    height: 195,
   },
   window: {
     flexDirection: "column",
@@ -134,7 +136,6 @@ const styles = StyleSheet.create({
     overflow: "scroll",
   },
   heightCaption: {
-    //marginLeft: "20%",
     alignSelf: "flex-start",
     left: 6,
   },

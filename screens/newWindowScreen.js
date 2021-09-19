@@ -21,14 +21,43 @@ import colors from "../constants/colors";
 
 import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
+import { color } from "react-native-reanimated";
 
 const db = SQLite.openDatabase("powershade.db");
+
+const DeleteDialog = (props) => {
+  return (
+    <View>
+      <Portal>
+        <Dialog visible={props.visible} onDismiss={props.hideDialog}>
+          <Dialog.Title>Löschen</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Wirklich Messung löschen?</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button style={{ minWidth: "20%" }} onPress={props.hideDialog}>
+              Nein
+            </Button>
+            <Button style={{ minWidth: "20%" }} onPress={props.delMeasurement}>
+              Ja
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </View>
+  );
+};
 
 /** Input screen for creating a new window. Inputs for various metadata (name,
  * dimensions, comments) as well as a button with a redirect to a QR scanner and
  * a button to initiate the measurements.
  */
 export function NewWindowScreen({ route, navigation }) {
+  /* TEMPORARY UNTIL CONTEXT IMPLEMENTATION OF GLOBAL STATE */
+  const [bluetoothPaired, setBluetoothPaired] = React.useState(false);
+  const [measurementStatus, setMeasurementStatus] = React.useState("init");
+  // ^ possible values: "init", "running", "done"
+  /* TEMPORARY END */
   // The active project
   const [project, setProject] = React.useState({
     id: "",
@@ -43,8 +72,8 @@ export function NewWindowScreen({ route, navigation }) {
     name: "",
     width: "",
     height: "",
-    sensorCorner: "upperLeft",
-    sensorPosH: "10",
+    sensorCorner: "lowerRight",
+    sensorPosH: "15",
     sensorPosV: "10",
     qr: "",
     annotations: "",
@@ -68,6 +97,12 @@ export function NewWindowScreen({ route, navigation }) {
     sensorPosH: false,
     sensorPosV: false,
   });
+
+  // State of measurement delete dialog
+  const [dialogVisible, setDialogVisible] = React.useState(false);
+
+  const showDialog = () => setDialogVisible(true);
+  const hideDialog = () => setDialogVisible(false);
 
   let inputError =
     Object.values(inputErrors).includes(true) || window.name === "";
@@ -173,6 +208,8 @@ export function NewWindowScreen({ route, navigation }) {
             [route.params.windowId],
             (_, { rows: { _array } }) => {
               setWindow(_array[0]);
+              console.log(_array[0].alt);
+              _array[0].alt === null ? null : setMeasurementStatus("done");
               setTemp({
                 width: String(_array[0].width),
                 height: String(_array[0].height),
@@ -222,8 +259,8 @@ export function NewWindowScreen({ route, navigation }) {
           window.sensorPosV,
           0,
           0,
-          2.2,
-          130,
+          measurementStatus === "done" ? 1.0 : null,
+          Math.random() * 360,
           90,
           route.params.qr.data,
           window.annotations,
@@ -238,7 +275,7 @@ export function NewWindowScreen({ route, navigation }) {
 
   // Update an existing window
   const update = () => {
-    console.log("before update:  " + JSON.stringify(window));
+    //console.log("before update:  " + JSON.stringify(window));
     db.transaction((tx) => {
       tx.executeSql(
         `UPDATE windows
@@ -264,11 +301,11 @@ export function NewWindowScreen({ route, navigation }) {
           window.sensorCorner,
           window.sensorPosH,
           window.sensorPosV,
-          0,
-          0,
-          2.2,
-          130,
-          90,
+          measurementStatus === "done" ? window.latitude : null,
+          measurementStatus === "done" ? window.longitude : null,
+          measurementStatus === "done" ? window.altitude : null,
+          measurementStatus === "done" ? window.azimuth : null,
+          measurementStatus === "done" ? window.inclination : null,
           window.qr,
           window.annotations,
           route.params.windowId,
@@ -281,6 +318,118 @@ export function NewWindowScreen({ route, navigation }) {
     });
   };
 
+  // delete Bluetooth measurements
+  const delMeasurement = () => {
+    if (route.params.windowId) {
+      //Editing mode:
+      db.transaction((tx) => {
+        tx.executeSql(
+          `UPDATE windows
+          SET last_edit = datetime("now"),
+          latitude = ?, 
+          longitude = ?, 
+          altitude = ?, 
+          azimuth = ?, 
+          inclination = ? 
+          WHERE id = ?;`,
+          [null, null, null, null, null, route.params.windowId],
+          null,
+          (t, error) => {
+            console.log(error);
+          }
+        );
+      });
+    }
+    setMeasurementStatus("init");
+    setDialogVisible(false);
+  };
+
+  /** Adds the abbreviated cardinal direction to the azimuth string.
+   * @param {string} azi - The azimuth string in degrees, e.g. "167"
+   * @returns {string} the formatted azimuth string
+   * e.g. "167" becomes "167° (SSO)"
+   */
+  const formatAzi = (azi) => {
+    let cardinalIndex = Number.parseFloat(azi) / 22.5;
+    cardinalIndex = Math.round(cardinalIndex);
+    let cardinalName, cardinalFormatted;
+    let formattedAzi = Number.parseInt(Math.round(Number.parseFloat(azi)));
+
+    let cardinalNameList = [
+      "N",
+      "NNO",
+      "NO",
+      "ONO",
+      "O",
+      "OSO",
+      "SO",
+      "SSO",
+      "S",
+      "SSW",
+      "SW",
+      "WSW",
+      "W",
+      "NW",
+      "NNW",
+    ];
+
+    cardinalName = cardinalNameList[cardinalIndex];
+
+    // switch (cardinalIndex) {
+    //   case 0:
+    //     cardinalName = "N";
+    //     break;
+    //   case 1:
+    //     cardinalName = "NNO";
+    //     break;
+    //   case 2:
+    //     cardinalName = "NO";
+    //     break;
+    //   case 3:
+    //     cardinalName = "ONO";
+    //     break;
+    //   case 4:
+    //     cardinalName = "O";
+    //     break;
+    //   case 5:
+    //     cardinalName = "OSO";
+    //     break;
+    //   case 6:
+    //     cardinalName = "SO";
+    //     break;
+    //   case 7:
+    //     cardinalName = "SSO";
+    //     break;
+    //   case 8:
+    //     cardinalName = "S";
+    //     break;
+    //   case 9:
+    //     cardinalName = "SSW";
+    //     break;
+    //   case 10:
+    //     cardinalName = "SW";
+    //     break;
+    //   case 11:
+    //     cardinalName = "WSW";
+    //     break;
+    //   case 12:
+    //     cardinalName = "W";
+    //     break;
+    //   case 13:
+    //     cardinalName = "WNW";
+    //     break;
+    //   case 14:
+    //     cardinalName = "NW";
+    //     break;
+    //   case 15:
+    //     cardinalName = "NNW";
+    //     break;
+    // }
+
+    cardinalFormatted = `${formattedAzi}° (${cardinalName})`; // e.g. "167 (SSO)"
+    return cardinalFormatted;
+  };
+
   // data has not been fetched yet, show a loading screen
   if (project.id === "") {
     return (
@@ -291,6 +440,88 @@ export function NewWindowScreen({ route, navigation }) {
           color={colors.primary._800}
         />
       </View>
+    );
+  }
+
+  // measurementContainer for the bluetooth measurements
+  let measurementContainer;
+  if (measurementStatus === "done") {
+    measurementContainer = (
+      <View style={styles.measurementResults}>
+        <View>
+          <Caption style={{ color: colors.white.high_emph }}>
+            MESSUNGSSTATUS
+          </Caption>
+          <View style={styles.measurementRunning}>
+            <IconButton
+              icon="checkbox-marked-circle-outline"
+              color={colors.secondary._600}
+              style={styles.checkmark}
+            />
+            <Subheading style={[styles.measurementText]}>empfangen</Subheading>
+          </View>
+        </View>
+        <View>
+          <Caption style={{ color: colors.white.high_emph }}>
+            AUSRICHTUNG
+          </Caption>
+          <View style={styles.measurementResults}>
+            <Subheading style={{ color: colors.white.high_emph }}>
+              {formatAzi(window.azimuth)}
+            </Subheading>
+          </View>
+        </View>
+        <View>
+          <Caption style={{ color: colors.white.high_emph }}>NEIGUNG</Caption>
+          <View style={styles.measurementResults}>
+            <Subheading style={{ color: colors.white.high_emph }}>
+              {window.inclination}°
+            </Subheading>
+          </View>
+        </View>
+        <View>
+          <View style={styles.measurementDelete}>
+            <IconButton
+              icon="delete"
+              color={colors.white.high_emph}
+              style={{ margin: 0, padding: 0 }}
+              onPress={() => setDialogVisible(true)}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  } else if (measurementStatus === "running") {
+    measurementContainer = (
+      <View>
+        <Caption style={{ color: colors.white.high_emph }}>
+          MESSUNGSSTATUS
+        </Caption>
+        <View style={styles.measurementRunning}>
+          <ActivityIndicator animating={true} color={colors.secondary._600} />
+          <Subheading
+            style={[styles.measurementText]}
+            onPress={() => {
+              setValue("azimuth", Math.random() * 360);
+              setValue("inclination", 90);
+              setMeasurementStatus("done");
+            }}
+          >
+            Warte auf Messergebnis...
+          </Subheading>
+        </View>
+      </View>
+    );
+  } else {
+    measurementContainer = (
+      <Button
+        icon="bluetooth"
+        mode="contained"
+        color={colors.secondary._600}
+        onPress={() => setMeasurementStatus("running")}
+      >
+        Messung starten
+      </Button>
     );
   }
 
@@ -341,18 +572,7 @@ export function NewWindowScreen({ route, navigation }) {
             Raum-/Fenstername darf nicht leer sein
           </HelperText>
           <View style={styles.measurementContainer}>
-            <Caption style={{ color: colors.white.high_emph }}>
-              MESSUNGSSTATUS
-            </Caption>
-            <View style={styles.measurementResults}>
-              <ActivityIndicator
-                animating={true}
-                color={colors.secondary._600}
-              />
-              <Subheading style={[styles.measurementText]}>
-                Warte auf Messergebnis...
-              </Subheading>
-            </View>
+            {measurementContainer}
           </View>
         </View>
         <View style={styles.dimContainer}>
@@ -405,72 +625,73 @@ export function NewWindowScreen({ route, navigation }) {
             Breite und Höhe müssen in (Komma-)Zahlen eingegeben oder leer
             gelassen werden.
           </HelperText>
-
-          <WindowPreview
-            width={window.width}
-            height={window.height}
-            sensorPosH={window.sensorPosH}
-            sensorPosV={window.sensorPosV}
-            sensorCorner={window.sensorCorner}
-          />
-          <View style={styles.sensorContainer}>
-            <Caption style={styles.dimCaption}>SENSORPOSITION</Caption>
-            <SensorPositionToggle
-              value={window.sensorCorner}
-              setSensorCorner={setValue}
+          <View style={styles.windowPreviewRow}>
+            <WindowPreview
+              width={window.width}
+              height={window.height}
+              sensorPosH={window.sensorPosH}
+              sensorPosV={window.sensorPosV}
+              sensorCorner={window.sensorCorner}
             />
-            <TextInput
-              label="horizontal"
-              mode="outlined"
-              keyboardType="number-pad"
-              value={temp.sensorPosH}
-              error={inputErrors.sensorPosH}
-              onChangeText={(text) => {
-                setTempValue("sensorPosH", text);
-                fpNumberDot.test(text) || fpNumberComma.test(text)
-                  ? setError("sensorPosH", false)
-                  : setError("sensorPosH", true);
-              }}
-              onBlur={() =>
-                inputErrors.sensorPosH
-                  ? null
-                  : setValue("sensorPosH", temp.sensorPosH)
-              }
-              style={styles.fullTextInput}
-              right={<TextInput.Affix text="cm" />}
-            />
-            <TextInput
-              label="vertikal"
-              mode="outlined"
-              keyboardType="number-pad"
-              value={temp.sensorPosV}
-              error={inputErrors.sensorPosV}
-              onChangeText={(text) => {
-                setTempValue("sensorPosV", text);
-                fpNumberDot.test(text) || fpNumberComma.test(text)
-                  ? setError("sensorPosV", false)
-                  : setError("sensorPosV", true);
-              }}
-              onBlur={() =>
-                inputErrors.sensorPosV
-                  ? null
-                  : setValue("sensorPosV", temp.sensorPosV)
-              }
-              style={styles.fullTextInput}
-              right={<TextInput.Affix text="cm" />}
-            />
-            <HelperText
-              type="error"
-              visible={inputErrors.sensorPosH || inputErrors.sensorPosV}
-              style={
-                inputErrors.sensorPosH || inputErrors.sensorPosV
-                  ? null
-                  : { display: "none" }
-              }
-            >
-              Abstände müssen in (Komma-)Zahlen eingeben werden und dürfen nicht
-              leer sein.
-            </HelperText>
+            <View style={styles.sensorContainer}>
+              <Caption style={styles.dimCaption}>SENSORPOSITION</Caption>
+              <SensorPositionToggle
+                value={window.sensorCorner}
+                setSensorCorner={setValue}
+              />
+              <TextInput
+                label="horizontal"
+                mode="outlined"
+                keyboardType="number-pad"
+                value={temp.sensorPosH}
+                error={inputErrors.sensorPosH}
+                onChangeText={(text) => {
+                  setTempValue("sensorPosH", text);
+                  fpNumberDot.test(text) || fpNumberComma.test(text)
+                    ? setError("sensorPosH", false)
+                    : setError("sensorPosH", true);
+                }}
+                onBlur={() =>
+                  inputErrors.sensorPosH
+                    ? null
+                    : setValue("sensorPosH", temp.sensorPosH)
+                }
+                style={styles.fullTextInput}
+                right={<TextInput.Affix text="cm" />}
+              />
+              <TextInput
+                label="vertikal"
+                mode="outlined"
+                keyboardType="number-pad"
+                value={temp.sensorPosV}
+                error={inputErrors.sensorPosV}
+                onChangeText={(text) => {
+                  setTempValue("sensorPosV", text);
+                  fpNumberDot.test(text) || fpNumberComma.test(text)
+                    ? setError("sensorPosV", false)
+                    : setError("sensorPosV", true);
+                }}
+                onBlur={() =>
+                  inputErrors.sensorPosV
+                    ? null
+                    : setValue("sensorPosV", temp.sensorPosV)
+                }
+                style={styles.fullTextInput}
+                right={<TextInput.Affix text="cm" />}
+              />
+              <HelperText
+                type="error"
+                visible={inputErrors.sensorPosH || inputErrors.sensorPosV}
+                style={
+                  inputErrors.sensorPosH || inputErrors.sensorPosV
+                    ? null
+                    : { display: "none" }
+                }
+              >
+                Abstände müssen in (Komma-)Zahlen eingeben werden und dürfen
+                nicht leer sein.
+              </HelperText>
+            </View>
           </View>
           <View style={styles.qrRow}>
             <IconButton
@@ -497,12 +718,26 @@ export function NewWindowScreen({ route, navigation }) {
             style={styles.fullTextInput}
           />
           {window.last_edit === undefined ? null : (
-            <Text style={styles.timestamp}>
-              Letzte Änderung: {window.last_edit}
-            </Text>
+            <View style={styles.timestampContainer}>
+              <View style={styles.timestamp}>
+                <Text>Letzte Änderung:</Text>
+                <Text>{project.last_edit}</Text>
+              </View>
+
+              <View style={styles.timestamp}>
+                <Text>Erstellt:</Text>
+                <Text>{project.created}</Text>
+              </View>
+            </View>
           )}
         </View>
       </ScrollView>
+      <DeleteDialog
+        visible={dialogVisible}
+        showDialog={() => setDialogVisible(true)}
+        hideDialog={() => setDialogVisible(false)}
+        delMeasurement={() => delMeasurement()}
+      />
       <View style={styles.fabView}>
         <FAB
           style={styles.fab}
@@ -510,7 +745,7 @@ export function NewWindowScreen({ route, navigation }) {
           icon="content-save"
           label="Speichern"
           onPress={() => {
-            console.log("Pressed save window");
+            //console.log("Pressed save window");
             route.params.windowId ? update() : add(); // editing or creating?
             navigation.navigate("windowList");
           }}
@@ -539,16 +774,35 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   measurementContainer: {
-    height: 60,
+    //height: 60,
     paddingHorizontal: "3%",
     marginTop: 10,
+    paddingBottom: 10,
+  },
+  checkmark: {
+    position: "relative",
+    top: 3,
+    height: 24,
+    width: 24,
+    margin: 0,
+    padding: 0,
+  },
+  measurementRunning: {
+    flexDirection: "row",
   },
   measurementResults: {
     flexDirection: "row",
+    justifyContent: "space-between",
   },
   measurementText: {
     paddingHorizontal: 15,
     color: colors.white.high_emph,
+  },
+  measurementDelete: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    marginBottom: -18,
   },
   // --- Input Area ---
   dimContainer: {
@@ -556,7 +810,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     //alignItems: "center",
     justifyContent: "space-between",
-    padding: "4%",
+    padding: 15,
   },
   dimCaption: {
     width: "100%",
@@ -599,13 +853,15 @@ const styles = StyleSheet.create({
     marginLeft: 0,
   },
   // --- Sensor ---
+  windowPreviewRow: {
+    width: "100%",
+    flexDirection: "row",
+    marginBottom: 7,
+  },
   sensorContainer: {
     width: 168,
-    //flex: 1,
-    //flexGrow: 1,
     marginTop: 10,
-    marginLeft: "5%",
-    //backgroundColor: "grey",
+    marginLeft: 15,
   },
   fabView: {
     position: "absolute",
@@ -616,9 +872,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  timestamp: {
+  timestampContainer: {
     padding: 10,
+    width: "100%",
+    flexDirection: "row",
     color: colors.black.medium_high_emph,
+  },
+  timestamp: {
+    flex: 1,
   },
   fab: {
     position: "absolute",
