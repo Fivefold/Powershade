@@ -41,11 +41,13 @@ export default function App() {
           `CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY NOT null, 
             last_edit INTEGER,
+            created INTEGER,
             customer TEXT, 
             street TEXT,
             number TEXT,
             zip INTEGER,
-            city TEXT
+            city TEXT,
+            country TEXT
           );`
         );
         tx.executeSql(
@@ -59,9 +61,9 @@ export default function App() {
             sensorCorner TEXT,
             sensorPosH REAL,
             sensorPosV REAL,
-            lat REAL,
-            long REAL,
-            alt REAL,
+            latitude REAL,
+            longitude REAL,
+            altitude REAL,
             azimuth REAL,
             inclination REAL,
             qr TEXT,
@@ -75,25 +77,36 @@ export default function App() {
             value INTEGER 
           );`
         );
+        // tx.executeSql(
+        //   `UPDATE windows
+        //     SET z_height = ?
+        //     WHERE name = ?;`,
+        //   [null, "Top 2 Küche"],
+        //   null,
+        //   (t, error) => {
+        //     console.log(error);
+        //   }
+        // );
         //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
 
-        /*tx.executeSql(
-          `INSERT INTO projects (customer, street, number, zip, city) VALUES
-          ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
-          ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`,
-          [],
-          null,
-          (t, error) => {
-            console.log(error);
-          }
-        );*/
+        // tx.executeSql(
+        //   `INSERT INTO projects (customer, street, number, zip, city) VALUES
+        //   ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
+        //   ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`,
+        //   [],
+        //   null,
+        //   (t, error) => {
+        //     console.log(error);
+        //   }
+        // );
 
-        /*tx.executeSql(
+        /*
+        tx.executeSql(
           `INSERT INTO windows (project, name, width, height, z_height) VALUES
-          (1,"Wohnzimmer 1", 100, 120.5, 2.43),
-          (1,"Wohnzimmer 2", 100, 120.5, 2.43),
-          (1,"Schlafzimmer", 80, 100, 2.41),
-          (2,"Küche", 50, 50.5, 2.40);`,
+          (2,"Top 1 Küche", 90, 120.5, 2.43),
+          (2,"Top 1 Schlafzimmer", 130, 120.5, 2.43),
+          (2,"Top 2 Wohnzimmer", 120, 120, 2.41),
+          (2,"Top 2 Küche", 90, 120, 2.40);`,
           [],
           null,
           (t, error) => {
@@ -101,6 +114,7 @@ export default function App() {
           }
         );*/
 
+        /*
         tx.executeSql(
           "select * from projects",
           [],
@@ -110,7 +124,7 @@ export default function App() {
           }
         );
         tx.executeSql(
-          "select * from settings",
+          "select * from windows",
           [],
           (_, { rows }) => console.log(JSON.stringify(rows)),
           (t, error) => {
@@ -120,14 +134,14 @@ export default function App() {
         tx.executeSql(
           `SELECT value FROM settings WHERE key = "active_project";`,
           [],
-          (_, { rows: { _array } }) => console.log(_array),
+          (_, { rows: { _array } }) => console.log(_array[0]),
           (t, error) => {
             console.log(error);
           }
-        );
+          );
+          */
       },
-      (error) => console.log(error),
-      console.log("create table transaction success")
+      (error) => console.log(error)
     );
   }, []);
 

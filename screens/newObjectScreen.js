@@ -1,13 +1,8 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import {
-  FAB,
-  HelperText,
-  TextInput,
-  Text,
-  Paragraph,
-} from "react-native-paper";
+import { FAB, HelperText, TextInput, Text } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import colors from "../constants/colors";
 
@@ -37,6 +32,7 @@ export function NewObjectScreen({ route, navigation }) {
     number: "",
     zip: "",
     city: "",
+    country: "",
   });
 
   // Error flags for each input field. Used for input validation.
@@ -46,6 +42,7 @@ export function NewObjectScreen({ route, navigation }) {
     number: false,
     zip: false,
     city: false,
+    country: false,
   });
 
   // get the project data for filling the forms if editing a project
@@ -55,8 +52,9 @@ export function NewObjectScreen({ route, navigation }) {
         (tx) => {
           tx.executeSql(
             `SELECT 
-              id, customer, street, number, zip, city,
-              strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit
+              id, customer, street, number, zip, city, country,
+              strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit,
+              strftime("%d.%m.%Y %H:%M:%S", created, 'localtime') AS created
             FROM projects
             WHERE id = ?;`,
             [route.params.id],
@@ -79,7 +77,8 @@ export function NewObjectScreen({ route, navigation }) {
     project.street === "" ||
     project.number === "" ||
     project.zip === "" ||
-    project.city === "";
+    project.city === "" ||
+    project.country === "";
 
   /** Update or add a single value in the 'project' state object. No nesting.
    * @param {string} key - The key in the key-value pair
@@ -107,16 +106,23 @@ export function NewObjectScreen({ route, navigation }) {
   const add = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        `INSERT INTO projects (customer, street, number, zip, city, last_edit) 
+        `INSERT INTO projects (
+          customer, street, number, zip, city, country, last_edit, created
+          ) 
         VALUES
-          (?, ?, ?, ?, ?, datetime("now"));`,
+          (?, ?, ?, ?, ?, ?, datetime("now"), datetime("now"));`,
         [
           project.customer,
           project.street,
           project.number,
           project.zip,
           project.city,
-        ]
+          project.country,
+        ],
+        null,
+        (t, error) => {
+          console.log(error);
+        }
       );
     });
   };
@@ -131,6 +137,7 @@ export function NewObjectScreen({ route, navigation }) {
               number = ?, 
               zip = ?, 
               city = ?,
+              country = ?,
               last_edit = datetime("now")
           WHERE id = ?;`,
         [
@@ -139,6 +146,7 @@ export function NewObjectScreen({ route, navigation }) {
           project.number,
           project.zip,
           project.city,
+          project.country,
           project.id,
         ],
         null,
@@ -243,12 +251,12 @@ export function NewObjectScreen({ route, navigation }) {
         onChangeText={(text) => {
           setValue("zip", text);
           // if Text is entered, remove the empty field warning
-          !(text === "") && RegExp("^\\d{4}$").test(text)
+          !(text === "") && RegExp("^\\d{4,5}$").test(text)
             ? setError("zip", false)
             : setError("zip", true);
         }}
         onBlur={() =>
-          RegExp("^\\d{4}$").test(project.zip)
+          RegExp("^\\d{4,5}$").test(project.zip)
             ? setError("zip", false)
             : setError("zip", true)
         }
@@ -270,7 +278,6 @@ export function NewObjectScreen({ route, navigation }) {
         }
         style={styles.wideTextInput}
       />
-
       <HelperText
         type="error"
         visible={inputErrors.zip}
@@ -278,7 +285,7 @@ export function NewObjectScreen({ route, navigation }) {
       >
         {project.zip === ""
           ? "PLZ darf nicht leer sein"
-          : "PLZ muss aus 4 Zahlen bestehen"}
+          : "PLZ muss aus 4-5 Zahlen bestehen"}
       </HelperText>
 
       <HelperText
@@ -289,10 +296,47 @@ export function NewObjectScreen({ route, navigation }) {
         Stadt darf nicht leer sein
       </HelperText>
 
+      <TextInput
+        id="country"
+        label="Land"
+        mode="outlined"
+        value={project.country}
+        error={inputErrors.country}
+        onChangeText={(text) => {
+          setValue("country", text);
+          // if Text is entered, remove the empty field warning
+          !(text === "")
+            ? setError("country", false)
+            : setError("country", true);
+        }}
+        onBlur={() =>
+          project.country === ""
+            ? setError("country", true)
+            : setError("country", false)
+        }
+        style={styles.fullTextInput}
+      />
+
+      <HelperText
+        type="error"
+        visible={inputErrors.country}
+        style={inputErrors.country ? styles.fullTextInput : { display: "none" }}
+      >
+        Land darf nicht leer sein
+      </HelperText>
+
       {project.last_edit === null || project.last_edit.length === 0 ? null : (
-        <Text style={styles.timestamp}>
-          Letzte Änderung: {project.last_edit}
-        </Text>
+        <View style={styles.timestampContainer}>
+          <View style={styles.timestamp}>
+            <Text>Letzte Änderung:</Text>
+            <Text>{project.last_edit}</Text>
+          </View>
+
+          <View style={styles.timestamp}>
+            <Text>Erstellt:</Text>
+            <Text>{project.created}</Text>
+          </View>
+        </View>
       )}
 
       <FAB
@@ -336,9 +380,14 @@ const styles = StyleSheet.create({
     marginHorizontal: marginHorizontal,
     marginVertical: marginVertical,
   },
-  timestamp: {
+  timestampContainer: {
     padding: 10,
+    width: "100%",
+    flexDirection: "row",
     color: colors.black.medium_high_emph,
+  },
+  timestamp: {
+    flex: 1,
   },
   appbar: {
     position: "absolute",

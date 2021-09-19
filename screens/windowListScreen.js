@@ -104,7 +104,7 @@ function Windows(props) {
       db.transaction((tx) => {
         // Get windows from db
         tx.executeSql(
-          `SELECT id, project, name, width, height, alt, qr FROM windows
+          `SELECT id, project, name, width, height, altitude, qr FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
@@ -129,7 +129,7 @@ function Windows(props) {
         tx.executeSql(`DELETE FROM windows WHERE id = ?`, [id]);
         // update the windows state
         tx.executeSql(
-          `SELECT id, project, name, width, height, alt FROM windows
+          `SELECT id, project, name, width, height, altitude FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
@@ -171,14 +171,14 @@ function Windows(props) {
 
   return (
     <View>
-      {visibleWindows.map(({ id, name, width, height, alt, qr }) => (
+      {visibleWindows.map(({ id, name, width, height, altidue, qr }) => (
         <View key={id}>
           <List.Item
             title={
               <IncompleteIcon
                 name={name}
                 fieldsIncomplete={qr === "" || qr === null}
-                measureIncomplete={alt == "" || alt === null}
+                measureIncomplete={altitude == "" || altitude === null}
                 noDimensions={width === "" || height === ""}
               />
             }
@@ -187,10 +187,10 @@ function Windows(props) {
                 {width === "" || width === null // Show dimensions
                   ? null
                   : `${width} cm x ${height} cm`}
-                {!((width === "" || width === null) && alt === null)
+                {!((width === "" || width === null) && altidue === null)
                   ? " - " // Connector
                   : null}
-                {alt === null ? null : `Höhe UK: ${alt} m`}
+                {altidue === null ? null : `Höhe UK: ${altidue} m`}
               </Text>
             }
             right={() => (
@@ -200,7 +200,7 @@ function Windows(props) {
                   height={height}
                   noDimensions={width === "" || height === ""}
                   fieldsIncomplete={qr === "" || qr === null}
-                  measureIncomplete={alt == ""}
+                  measureIncomplete={altitude == ""}
                 />
                 <EditDeleteMenu
                   id={id}
@@ -208,7 +208,7 @@ function Windows(props) {
                   deleteWindow={deleteWindow}
                   noDimensions={width === "" || height === ""}
                   fieldsIncomplete={qr === "" || qr === null}
-                  measureIncomplete={alt == "" || alt === null}
+                  measureIncomplete={altitude == "" || altitude === null}
                   navigation={props.navigation}
                 />
               </View>

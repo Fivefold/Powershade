@@ -128,7 +128,8 @@ export function DataExportScreen({ navigation }) {
         tx.executeSql(
           `SELECT
             id,
-            last_edit, 
+            last_edit,
+            created, 
             project, 
             name, 
             width, 
@@ -136,9 +137,9 @@ export function DataExportScreen({ navigation }) {
             sensorCorner,
             sensorPosH,
             sensorPosV, 
-            lat, 
-            long, 
-            alt, 
+            latitude, 
+            longitude, 
+            altitude, 
             azimuth, 
             inclination, 
             qr, 
