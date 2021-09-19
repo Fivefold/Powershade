@@ -189,7 +189,7 @@ export function NewWindowScreen({ route, navigation }) {
             `SELECT
               id,
               strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit,
-              created,
+              strftime("%d.%m.%Y %H:%M:%S", created, 'localtime') AS created,
               project, 
               name, 
               width, 
@@ -208,8 +208,8 @@ export function NewWindowScreen({ route, navigation }) {
             [route.params.windowId],
             (_, { rows: { _array } }) => {
               setWindow(_array[0]);
-              console.log(_array[0].alt);
-              _array[0].alt === null ? null : setMeasurementStatus("done");
+              // set bluetooth measuring status
+              _array[0].altitude === null ? null : setMeasurementStatus("done");
               setTemp({
                 width: String(_array[0].width),
                 height: String(_array[0].height),
@@ -242,13 +242,13 @@ export function NewWindowScreen({ route, navigation }) {
           sensorPosH,
           sensorPosV, 
           latitude, 
-          long, 
+          longitude, 
           altitude, 
           azimuth, 
           inclination, 
           qr, 
           annotations) VALUES
-        (datetime("now"), datetime("now"), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        (datetime("now"), datetime("now"), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           project.id,
           window.name,
@@ -257,11 +257,11 @@ export function NewWindowScreen({ route, navigation }) {
           window.sensorCorner,
           window.sensorPosH,
           window.sensorPosV,
-          0,
-          0,
-          measurementStatus === "done" ? 1.0 : null,
-          Math.random() * 360,
-          90,
+          measurementStatus === "done" ? window.latitude : null,
+          measurementStatus === "done" ? window.longitude : null,
+          measurementStatus === "done" ? window.altitude : null,
+          measurementStatus === "done" ? window.azimuth : null,
+          measurementStatus === "done" ? window.inclination : null,
           route.params.qr.data,
           window.annotations,
         ],
@@ -375,57 +375,6 @@ export function NewWindowScreen({ route, navigation }) {
 
     cardinalName = cardinalNameList[cardinalIndex];
 
-    // switch (cardinalIndex) {
-    //   case 0:
-    //     cardinalName = "N";
-    //     break;
-    //   case 1:
-    //     cardinalName = "NNO";
-    //     break;
-    //   case 2:
-    //     cardinalName = "NO";
-    //     break;
-    //   case 3:
-    //     cardinalName = "ONO";
-    //     break;
-    //   case 4:
-    //     cardinalName = "O";
-    //     break;
-    //   case 5:
-    //     cardinalName = "OSO";
-    //     break;
-    //   case 6:
-    //     cardinalName = "SO";
-    //     break;
-    //   case 7:
-    //     cardinalName = "SSO";
-    //     break;
-    //   case 8:
-    //     cardinalName = "S";
-    //     break;
-    //   case 9:
-    //     cardinalName = "SSW";
-    //     break;
-    //   case 10:
-    //     cardinalName = "SW";
-    //     break;
-    //   case 11:
-    //     cardinalName = "WSW";
-    //     break;
-    //   case 12:
-    //     cardinalName = "W";
-    //     break;
-    //   case 13:
-    //     cardinalName = "WNW";
-    //     break;
-    //   case 14:
-    //     cardinalName = "NW";
-    //     break;
-    //   case 15:
-    //     cardinalName = "NNW";
-    //     break;
-    // }
-
     cardinalFormatted = `${formattedAzi}° (${cardinalName})`; // e.g. "167 (SSO)"
     return cardinalFormatted;
   };
@@ -504,6 +453,7 @@ export function NewWindowScreen({ route, navigation }) {
             onPress={() => {
               setValue("azimuth", Math.random() * 360);
               setValue("inclination", 90);
+              setValue("altitude", 1.2);
               setMeasurementStatus("done");
             }}
           >

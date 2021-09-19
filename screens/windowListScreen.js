@@ -171,7 +171,7 @@ function Windows(props) {
 
   return (
     <View>
-      {visibleWindows.map(({ id, name, width, height, altidue, qr }) => (
+      {visibleWindows.map(({ id, name, width, height, altitude, qr }) => (
         <View key={id}>
           <List.Item
             title={
@@ -187,10 +187,10 @@ function Windows(props) {
                 {width === "" || width === null // Show dimensions
                   ? null
                   : `${width} cm x ${height} cm`}
-                {!((width === "" || width === null) && altidue === null)
+                {!((width === "" || width === null) && altitude === null)
                   ? " - " // Connector
                   : null}
-                {altidue === null ? null : `Höhe UK: ${altidue} m`}
+                {altitude === null ? null : `Höhe UK: ${altitude} m`}
               </Text>
             }
             right={() => (
