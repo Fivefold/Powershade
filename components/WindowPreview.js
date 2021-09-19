@@ -75,7 +75,7 @@ export const WindowPreview = (props) => {
       <View
         style={[styles.window, { width: scaledWidth, height: scaledHeight }]}
       >
-        <Caption>Von innen</Caption>
+        <Caption>Von außen</Caption>
         <Caption style={styles.heightCaption}>
           {props.width === "" || props.height === "" ? null : props.height}
         </Caption>
