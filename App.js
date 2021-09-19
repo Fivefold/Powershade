@@ -54,6 +54,7 @@ export default function App() {
           `CREATE TABLE IF NOT EXISTS windows (
             id INTEGER PRIMARY KEY NOT null, 
             last_edit INTEGER,
+            created INTEGER,
             project INTEGER,
             name TEXT, 
             width REAL,

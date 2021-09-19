@@ -671,12 +671,12 @@ export function NewWindowScreen({ route, navigation }) {
             <View style={styles.timestampContainer}>
               <View style={styles.timestamp}>
                 <Text>Letzte Änderung:</Text>
-                <Text>{project.last_edit}</Text>
+                <Text>{window.last_edit}</Text>
               </View>
 
               <View style={styles.timestamp}>
                 <Text>Erstellt:</Text>
-                <Text>{project.created}</Text>
+                <Text>{window.created}</Text>
               </View>
             </View>
           )}
