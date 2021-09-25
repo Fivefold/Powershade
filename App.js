@@ -19,6 +19,8 @@ import {
   windowStackNavigator,
 } from "./screens/WindowListScreen";
 import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
+import { bleManager } from "./modules/BleManager";
+import { StateContext } from "./modules/Context";
 
 export const db = SQLite.openDatabase("powershade.db");
 const Tab = createMaterialBottomTabNavigator();
@@ -34,6 +36,8 @@ export const theme = {
 };
 
 export default function App() {
+  const [bluetoothConnected, setBluetoothConnected] = React.useState(false);
+
   React.useEffect(() => {
     db.transaction(
       (tx) => {
@@ -78,119 +82,57 @@ export default function App() {
             value INTEGER 
           );`
         );
-        // tx.executeSql(
-        //   `UPDATE windows
-        //     SET z_height = ?
-        //     WHERE name = ?;`,
-        //   [null, "Top 2 Küche"],
-        //   null,
-        //   (t, error) => {
-        //     console.log(error);
-        //   }
-        // );
-        //tx.executeSql(`DELETE FROM projects WHERE id > 3`);
-
-        // tx.executeSql(
-        //   `INSERT INTO projects (customer, street, number, zip, city) VALUES
-        //   ('Max Mustermann', 'Musterstraße', '20B', 1234, 'Musterstadt'),
-        //   ('Anna Musterfrau', 'Musterstraße', '1', 1234, 'Musterstadt');`,
-        //   [],
-        //   null,
-        //   (t, error) => {
-        //     console.log(error);
-        //   }
-        // );
-
-        /*
-        tx.executeSql(
-          `INSERT INTO windows (project, name, width, height, z_height) VALUES
-          (2,"Top 1 Küche", 90, 120.5, 2.43),
-          (2,"Top 1 Schlafzimmer", 130, 120.5, 2.43),
-          (2,"Top 2 Wohnzimmer", 120, 120, 2.41),
-          (2,"Top 2 Küche", 90, 120, 2.40);`,
-          [],
-          null,
-          (t, error) => {
-            console.log(error);
-          }
-        );*/
-
-        /*
-        tx.executeSql(
-          "select * from projects",
-          [],
-          (_, { rows }) => console.log(JSON.stringify(rows)),
-          (t, error) => {
-            console.log(error);
-          }
-        );
-        tx.executeSql(
-          "select * from windows",
-          [],
-          (_, { rows }) => console.log(JSON.stringify(rows)),
-          (t, error) => {
-            console.log(error);
-          }
-        );
-        tx.executeSql(
-          `SELECT value FROM settings WHERE key = "active_project";`,
-          [],
-          (_, { rows: { _array } }) => console.log(_array[0]),
-          (t, error) => {
-            console.log(error);
-          }
-          );
-          */
       },
       (error) => console.log(error)
     );
   }, []);
 
-  /*React.useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "select * from projects",
-        [],
-        (_, { rows }) => console.log(JSON.stringify(rows)),
-        (t, error) => {
-          console.log(error);
-        }
-      );
-    });
-  }, []);*/
+  // React.useEffect(() => {
+  //   bleManager.onStateChange((state) => {
+  //     const subscription = manager.onStateChange((state) => {
+  //       if (state === "PoweredOn") {
+  //         this.scanAndConnect();
+  //         subscription.remove();
+  //       }
+  //     }, true);
+  //     return () => subscription.remove();
+  //   });
+  // }, [bleManager]);
 
   return (
-    <PaperProvider theme={theme}>
-      <StatusBar style="light" />
+    <StateContext.Provider value={[bluetoothConnected, setBluetoothConnected]}>
+      <PaperProvider theme={theme}>
+        <StatusBar style="light" />
 
-      {/* ---------- Navigation ----------- */}
-      <NavigationContainer>
-        <Tab.Navigator barStyle={{ backgroundColor: theme.colors.primary }}>
-          <Tab.Screen
-            name="Objekte"
-            component={homeStackNavigator}
-            options={{
-              tabBarIcon: "home-account",
-            }}
-          />
-          <Tab.Screen
-            name="Fenster"
-            component={windowStackNavigator}
-            options={{
-              tabBarIcon: "application",
-            }}
-          />
-          <Tab.Screen
-            name="Gerätestatus"
-            component={DeviceStatusScreen}
-            options={{
-              tabBarIcon: "devices",
-              tabBarColor: "green",
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </PaperProvider>
+        {/* ---------- Navigation ----------- */}
+        <NavigationContainer>
+          <Tab.Navigator barStyle={{ backgroundColor: theme.colors.primary }}>
+            <Tab.Screen
+              name="Objekte"
+              component={homeStackNavigator}
+              options={{
+                tabBarIcon: "home-account",
+              }}
+            />
+            <Tab.Screen
+              name="Fenster"
+              component={windowStackNavigator}
+              options={{
+                tabBarIcon: "application",
+              }}
+            />
+            <Tab.Screen
+              name="Gerätestatus"
+              component={DeviceStatusScreen}
+              options={{
+                tabBarIcon: "devices",
+                tabBarColor: "green",
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
+    </StateContext.Provider>
   );
 }
 

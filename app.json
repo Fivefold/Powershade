@@ -6,6 +6,13 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "privacy": "unlisted",
+    "plugins": [
+      ["@config-plugins/react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -24,7 +31,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN"
+      ],
+      "package": "com.fivefold.Powershade"
     },
     "web": {
       "favicon": "./assets/favicon.png"
