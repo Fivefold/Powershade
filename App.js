@@ -38,7 +38,9 @@ export const theme = {
 };
 
 export default function App() {
+  // States for global context API
   const [bluetoothConnected, setBluetoothConnected] = React.useState(false);
+  const [measurementStatus, setMeasurementStatus] = React.useState("idle");
 
   React.useEffect(() => {
     db.transaction(
@@ -102,7 +104,14 @@ export default function App() {
   // }, [bleManager]);
 
   return (
-    <StateContext.Provider value={[bluetoothConnected, setBluetoothConnected]}>
+    <StateContext.Provider
+      value={{
+        bluetoothConnected,
+        setBluetoothConnected,
+        measurementStatus,
+        setMeasurementStatus,
+      }}
+    >
       <PaperProvider theme={theme}>
         <StatusBar style="light" />
 
