@@ -43,5 +43,17 @@
   },
   "private": true,
   "name": "Powershade",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "importSort": {
+  ".js, .jsx, .es6, .es": {
+    "parser": "babylon",
+    "style": "module-scoped",
+    "options": {}
+  },
+  ".ts, .tsx": {
+    "parser": "typescript",
+    "style": "module-scoped",
+    "options": {}
+  }
+}
 }

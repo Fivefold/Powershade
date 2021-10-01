@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { Caption } from "react-native-paper";
+
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import colors from "../constants/colors";

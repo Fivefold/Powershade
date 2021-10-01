@@ -1,5 +1,6 @@
 import { BleManager } from "react-native-ble-plx";
-import { decode_base64, Base64 } from "./Base64";
+
+import { Base64, decode_base64 } from "./Base64";
 
 export const bleManager = new BleManager({
   restoreStateIdentifier: "bleManagerRestoredState",

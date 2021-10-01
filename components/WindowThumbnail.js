@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
+
 import colors from "../constants/colors";
 
 export const WindowThumbnail = (props) => {

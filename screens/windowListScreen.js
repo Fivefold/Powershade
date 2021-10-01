@@ -1,26 +1,26 @@
+import * as SQLite from "expo-sqlite";
 import React from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import {
   Appbar,
-  IconButton,
-  List,
-  TextInput,
   Divider,
   FAB,
   Headline,
+  IconButton,
+  List,
   Searchbar,
+  TextInput,
 } from "react-native-paper";
-import { createStackNavigator } from "@react-navigation/stack";
-import { ScrollView } from "react-native-gesture-handler";
-import * as SQLite from "expo-sqlite";
 
-import { WindowThumbnail } from "../components/WindowThumbnail";
+import { createStackNavigator } from "@react-navigation/stack";
+
+import { EditDeleteMenu } from "../components/EditDeleteMenu";
 import { WindowListHeader } from "../components/WindowListHeader";
+import { WindowThumbnail } from "../components/WindowThumbnail";
+import colors from "../constants/colors";
 import { NewWindowScreen } from "./NewWindowScreen";
 import { QrScanScreen } from "./QrScanScreen";
-
-import colors from "../constants/colors";
-import { EditDeleteMenu } from "../components/EditDeleteMenu";
 
 const db = SQLite.openDatabase("powershade.db");
 const WindowStack = createStackNavigator();

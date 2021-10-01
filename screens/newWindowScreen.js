@@ -1,27 +1,26 @@
+import * as SQLite from "expo-sqlite";
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
-  IconButton,
-  List,
-  TextInput,
-  Button,
   ActivityIndicator,
-  Subheading,
+  Button,
   Caption,
+  Dialog,
   FAB,
   HelperText,
-  Dialog,
-  Portal,
+  IconButton,
+  List,
   Paragraph,
+  Portal,
+  Subheading,
   Text,
+  TextInput,
 } from "react-native-paper";
-import * as SQLite from "expo-sqlite";
-
-import colors from "../constants/colors";
+import { color } from "react-native-reanimated";
 
 import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
-import { color } from "react-native-reanimated";
+import colors from "../constants/colors";
 
 const db = SQLite.openDatabase("powershade.db");
 

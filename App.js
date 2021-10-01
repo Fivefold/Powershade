@@ -1,26 +1,28 @@
-import React from "react";
-import { StatusBar } from "expo-status-bar";
 import "react-native-gesture-handler";
+
+import * as SQLite from "expo-sqlite";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import {
+  Appbar,
+  DefaultTheme,
+  Provider as PaperProvider,
+} from "react-native-paper";
+
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import * as SQLite from "expo-sqlite";
-import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
-import {
-  Provider as PaperProvider,
-  DefaultTheme,
-  Appbar,
-} from "react-native-paper";
-import { StyleSheet, Text, View } from "react-native";
 
 import colors from "./constants/colors";
+import { bleManager } from "./modules/BleManager";
+import { StateContext } from "./modules/Context";
+import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
 import { homeScreen, homeStackNavigator } from "./screens/HomeScreen";
 import {
   windowListScreen,
   windowStackNavigator,
 } from "./screens/WindowListScreen";
-import { DeviceStatusScreen } from "./screens/DeviceStatusScreen";
-import { bleManager } from "./modules/BleManager";
-import { StateContext } from "./modules/Context";
 
 export const db = SQLite.openDatabase("powershade.db");
 const Tab = createMaterialBottomTabNavigator();

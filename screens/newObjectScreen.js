@@ -1,7 +1,8 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { FAB, HelperText, TextInput, Text } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { FAB, HelperText, Text, TextInput } from "react-native-paper";
+
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import colors from "../constants/colors";

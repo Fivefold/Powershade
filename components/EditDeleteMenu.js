@@ -1,14 +1,14 @@
 import * as React from "react";
 import { View } from "react-native";
 import {
+  Button,
+  Dialog,
+  Divider,
   IconButton,
   Menu,
-  Text,
-  Button,
   Paragraph,
-  Dialog,
   Portal,
-  Divider,
+  Text,
 } from "react-native-paper";
 
 const DeleteDialog = (props) => {
