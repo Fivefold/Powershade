@@ -21,4 +21,7 @@ export default {
     disabled: "#00000026",
     inactive: "#00000036",
   },
+  red: {
+    danger: "#DC3545",
+  },
 };

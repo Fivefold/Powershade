@@ -1,4 +1,5 @@
-import { BleManager } from "react-native-ble-plx";
+import { BleErrorCode, BleManager } from "react-native-ble-plx";
+import { set } from "react-native-reanimated";
 
 import { Base64, decode_base64 } from "./Base64";
 
@@ -79,7 +80,8 @@ export const bleServices = {
     },
   },
 };
-export var bleDevice;
+export var bleDevice; // device object, see https://dotintent.github.io/react-native-ble-plx/#device
+var subscription; // subscription when monitoring measurement Status
 
 export async function logChar(deviceID, serviceUUID, characteristicUUID) {
   try {
@@ -92,13 +94,14 @@ export async function logChar(deviceID, serviceUUID, characteristicUUID) {
   } catch (error) {
     console.warn(error);
   }
+  value = Base64.decode(characteristic.value);
 
-  console.log("characteristic value: " + Base64.decode(characteristic.value));
+  console.log("characteristic value: " + value);
 
-  return;
+  return value;
 }
 
-export async function logAllChars() {
+export async function logAllChars(setValue) {
   measurementValuesUUIDs = [
     bleServices.measurementValues.characteristics.latitude.uuid,
     bleServices.measurementValues.characteristics.longitude.uuid,
@@ -107,9 +110,75 @@ export async function logAllChars() {
     bleServices.measurementValues.characteristics.inclination.uuid,
   ];
 
-  measurementValuesUUIDs.forEach((charUUID) => {
-    logChar(bleDeviceID, bleServices.measurementValues.uuid, charUUID);
+  valueKeys = ["latitude", "longitude", "altitude", "azimuth", "inclination"];
+
+  measurementValuesUUIDs.forEach(async (charUUID, index) => {
+    setValue(
+      valueKeys[index],
+      await logChar(bleDeviceID, bleServices.measurementValues.uuid, charUUID)
+    );
   });
+}
+
+export async function startMeasurement() {
+  await bleDevice.writeCharacteristicWithResponseForService(
+    bleServices.measurementStatus.uuid,
+    bleServices.measurementStatus.characteristics.status.uuid,
+    Base64.encode("start")
+  );
+
+  return;
+}
+
+export async function abortMeasurement() {
+  await bleDevice.writeCharacteristicWithResponseForService(
+    bleServices.measurementStatus.uuid,
+    bleServices.measurementStatus.characteristics.status.uuid,
+    Base64.encode("abort")
+  );
+  await stopMonitoring();
+  return;
+}
+
+export async function monitorMeasurementStatus(setStatus, setValue) {
+  let value = "init";
+
+  subscription = await bleDevice.monitorCharacteristicForService(
+    bleServices.measurementStatus.uuid,
+    bleServices.measurementStatus.characteristics.status.uuid,
+    // this gets called every time the characteristic changes
+    (error, char) => {
+      if (
+        error !== null &&
+        error.errorCode !== BleErrorCode.OperationCancelled
+      ) {
+        console.log(JSON.stringify(error));
+        console.log(`[ERROR] BLE monitorMeasurementStatus error: ${error}`);
+        setStatus("error");
+      } else if (char !== null) {
+        value = Base64.decode(char.value);
+        console.log(`[INFO] BLE measurementStatus change to ${value}`);
+
+        if (value === "done") {
+          logAllChars(setValue);
+        }
+
+        setStatus(value);
+      }
+    }
+  );
+
+  return;
+}
+
+export async function stopMonitoring() {
+  if (subscription !== undefined) {
+    console.log(`[INFO] measurementStatus subscription removed`);
+    await subscription.remove();
+  } else {
+    console.log(`[INFO] stopMonitoring called without active subscription`);
+  }
+  return;
 }
 
 export async function getBluetoothData() {
@@ -136,6 +205,7 @@ export async function getBluetoothData() {
   console.log(JSON.stringify(data));
 }
 
+// Bluetooth connection functions
 export async function scanAndConnect() {
   // TODO: refactor this into several functions and maybe async/await syntax
   if (bleDevice != undefined) {

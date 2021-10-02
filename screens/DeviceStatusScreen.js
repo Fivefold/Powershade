@@ -9,6 +9,7 @@ import {
   Subheading,
   Text,
 } from "react-native-paper";
+import { color } from "react-native-reanimated";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -18,8 +19,8 @@ import { StateContext } from "../modules/Context";
 
 export function DeviceStatusScreen() {
   const {
-    bluetoothPaired,
-    setBluetoothPaired,
+    bluetoothConnected,
+    setBluetoothConnected,
     measurementStatus,
     setMeasurementStatus,
   } = React.useContext(StateContext);
@@ -29,13 +30,13 @@ export function DeviceStatusScreen() {
     setPairing(true);
     scanAndConnect().then((res) => {
       setPairing(false);
-      res ? setBluetoothPaired(true) : setBluetoothPaired(false);
+      res ? setBluetoothConnected(true) : setBluetoothConnected(false);
     });
   }
 
   function disconnectBluetooth() {
     disconnect();
-    setBluetoothPaired(false);
+    setBluetoothConnected(false);
   }
 
   return (
@@ -44,12 +45,14 @@ export function DeviceStatusScreen() {
       <Subheading style={styles.subheading}>Bluetooth</Subheading>
       <View style={styles.iconTextContainer}>
         <MaterialCommunityIcons
-          name={bluetoothPaired ? "bluetooth" : "bluetooth-off"}
-          color={bluetoothPaired ? colors.primary._800 : colors.black.inactive}
+          name={bluetoothConnected ? "bluetooth" : "bluetooth-off"}
+          color={
+            bluetoothConnected ? colors.primary._800 : colors.black.inactive
+          }
           style={styles.icon}
           size={24}
         />
-        <Text>{bluetoothPaired ? "Verbunden" : "Getrennt"}</Text>
+        <Text>{bluetoothConnected ? "Verbunden" : "Getrennt"}</Text>
       </View>
 
       <Subheading style={styles.subheading}>Messstatus</Subheading>
@@ -68,26 +71,28 @@ export function DeviceStatusScreen() {
       <View style={styles.iconTextContainer}>
         <MaterialCommunityIcons
           name={
-            bluetoothPaired
+            bluetoothConnected
               ? "battery-70-bluetooth"
               : "battery-unknown-bluetooth"
           }
-          disabled={!bluetoothPaired}
-          color={bluetoothPaired ? colors.primary._800 : colors.black.inactive}
+          disabled={!bluetoothConnected}
+          color={
+            bluetoothConnected ? colors.primary._800 : colors.black.inactive
+          }
           style={styles.icon}
           size={24}
         />
-        <Text>{bluetoothPaired ? "70 %" : "N/A"}</Text>
+        <Text>{bluetoothConnected ? "70 %" : "N/A"}</Text>
       </View>
 
       <FAB
         style={styles.fab}
         loading={pairing}
         disabled={pairing}
-        icon={bluetoothPaired ? "bluetooth-off" : "bluetooth-connect"}
-        label={bluetoothPaired ? "Trennen" : "Verbinden"}
+        icon={bluetoothConnected ? "bluetooth-off" : "bluetooth-connect"}
+        label={bluetoothConnected ? "Trennen" : "Verbinden"}
         onPress={() => {
-          bluetoothPaired ? disconnectBluetooth() : pairBluetooth();
+          bluetoothConnected ? disconnectBluetooth() : pairBluetooth();
         }}
       />
     </View>

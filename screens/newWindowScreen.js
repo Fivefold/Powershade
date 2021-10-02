@@ -1,3 +1,6 @@
+// TODO: this screen/view grew too large over time and needs refactoring into
+// TODO: smaller components to improve readability
+
 import * as SQLite from "expo-sqlite";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -16,11 +19,18 @@ import {
   Text,
   TextInput,
 } from "react-native-paper";
-import { color } from "react-native-reanimated";
 
 import { SensorPositionToggle } from "../components/SensorPositionToggle";
 import { WindowPreview } from "../components/WindowPreview";
 import colors from "../constants/colors";
+import {
+  abortMeasurement,
+  disconnect,
+  monitorMeasurementStatus,
+  startMeasurement,
+  stopMonitoring,
+} from "../modules/BleManager";
+import { StateContext } from "../modules/Context";
 
 const db = SQLite.openDatabase("powershade.db");
 
@@ -52,11 +62,13 @@ const DeleteDialog = (props) => {
  * a button to initiate the measurements.
  */
 export function NewWindowScreen({ route, navigation }) {
-  /* TEMPORARY UNTIL CONTEXT IMPLEMENTATION OF GLOBAL STATE */
-  const [bluetoothPaired, setBluetoothPaired] = React.useState(false);
-  const [measurementStatus, setMeasurementStatus] = React.useState("init");
-  // ^ possible values: "init", "running", "done"
-  /* TEMPORARY END */
+  const {
+    bluetoothPaired,
+    setBluetoothPaired,
+    measurementStatus,
+    setMeasurementStatus,
+  } = React.useContext(StateContext);
+
   // The active project
   const [project, setProject] = React.useState({
     id: "",
@@ -106,6 +118,8 @@ export function NewWindowScreen({ route, navigation }) {
   let inputError =
     Object.values(inputErrors).includes(true) || window.name === "";
 
+  // Checks if a number is a valid florating point number, either using
+  // a point . or a comma ,
   const fpNumberDot = RegExp("^([0-9]+([.][0-9]*)?|[.][0-9]+)$");
   const fpNumberComma = RegExp("^([0-9]+([,][0-9]*)?|[,][0-9]+)$");
 
@@ -317,6 +331,14 @@ export function NewWindowScreen({ route, navigation }) {
     });
   };
 
+  React.useEffect(() => {
+    if (measurementStatus === "running") {
+    } else if (measurementStatus === "done") {
+      stopMonitoring();
+      setMeasurementStatus("idle");
+    }
+  }, [measurementStatus]);
+
   // delete Bluetooth measurements
   const delMeasurement = () => {
     if (route.params.windowId) {
@@ -339,7 +361,6 @@ export function NewWindowScreen({ route, navigation }) {
         );
       });
     }
-    setMeasurementStatus("init");
     setDialogVisible(false);
   };
 
@@ -393,7 +414,7 @@ export function NewWindowScreen({ route, navigation }) {
 
   // measurementContainer for the bluetooth measurements
   let measurementContainer;
-  if (measurementStatus === "done") {
+  if (window.azimuth !== undefined && window.azimuth !== null) {
     measurementContainer = (
       <View style={styles.measurementResults}>
         <View>
@@ -433,13 +454,13 @@ export function NewWindowScreen({ route, navigation }) {
               icon="delete"
               color={colors.white.high_emph}
               style={{ margin: 0, padding: 0 }}
-              onPress={() => setDialogVisible(true)}
+              onPress={() => showDialog}
             />
           </View>
         </View>
       </View>
     );
-  } else if (measurementStatus === "running") {
+  } else if (measurementStatus === "running" || measurementStatus === "done") {
     measurementContainer = (
       <View>
         <Caption style={{ color: colors.white.high_emph }}>
@@ -447,17 +468,19 @@ export function NewWindowScreen({ route, navigation }) {
         </Caption>
         <View style={styles.measurementRunning}>
           <ActivityIndicator animating={true} color={colors.secondary._600} />
-          <Subheading
-            style={[styles.measurementText]}
+          <Subheading style={[styles.measurementText]}>
+            Warte auf Messergebnis...{" "}
+          </Subheading>
+          <Button
+            mode="contained"
+            color={colors.red.danger}
             onPress={() => {
-              setValue("azimuth", Math.random() * 360);
-              setValue("inclination", 90);
-              setValue("altitude", 1.2);
-              setMeasurementStatus("done");
+              abortMeasurement();
+              setMeasurementStatus("idle");
             }}
           >
-            Warte auf Messergebnis...
-          </Subheading>
+            Abbrechen
+          </Button>
         </View>
       </View>
     );
@@ -467,7 +490,16 @@ export function NewWindowScreen({ route, navigation }) {
         icon="bluetooth"
         mode="contained"
         color={colors.secondary._600}
-        onPress={() => setMeasurementStatus("running")}
+        onPress={async () => {
+          // change the status here instead of via the notifying bluetooth device
+          // to change the view immediately
+          setMeasurementStatus("running");
+
+          await startMeasurement();
+
+          // get notified once the measurement is complete
+          await monitorMeasurementStatus(setMeasurementStatus, setValue);
+        }}
       >
         Messung starten
       </Button>
@@ -738,6 +770,7 @@ const styles = StyleSheet.create({
   },
   measurementRunning: {
     flexDirection: "row",
+    justifyContent: "space-between",
   },
   measurementResults: {
     flexDirection: "row",
@@ -746,6 +779,7 @@ const styles = StyleSheet.create({
   measurementText: {
     paddingHorizontal: 15,
     color: colors.white.high_emph,
+    textAlignVertical: "center",
   },
   measurementDelete: {
     alignItems: "center",
