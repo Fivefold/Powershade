@@ -129,7 +129,7 @@ function Windows(props) {
         tx.executeSql(`DELETE FROM windows WHERE id = ?`, [id]);
         // update the windows state
         tx.executeSql(
-          `SELECT id, project, name, width, height, altitude FROM windows
+          `SELECT id, project, name, width, height, altitude, qr FROM windows
           WHERE EXISTS (SELECT 1 FROM settings WHERE 
             windows.project = settings.value 
             AND 
