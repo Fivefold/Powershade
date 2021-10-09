@@ -55,7 +55,8 @@ export default function App() {
             number TEXT,
             zip INTEGER,
             city TEXT,
-            country TEXT
+            country TEXT,
+            order_number TEXT
           );`
         );
         tx.executeSql(

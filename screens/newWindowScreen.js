@@ -600,24 +600,6 @@ export function NewWindowScreen({ route, navigation }) {
           </View>
         </View>
         <View style={styles.dimContainer}>
-          <Button
-            onPress={() => {
-              console.log(JSON.stringify(window));
-            }}
-          >
-            log window {measurementStatus}
-          </Button>
-          <Button
-            onPress={() => {
-              console.log(JSON.stringify(windowInitialState));
-            }}
-          >
-            log windowInitial
-            {String(noUnsavedChanges)}
-          </Button>
-          <Text>
-            {windowInitialState.name === "" ? "null" : windowInitialState.name}
-          </Text>
           <Caption style={styles.dimCaption}>FENSTERABMESSUNGEN</Caption>
           <TextInput
             label="Breite"

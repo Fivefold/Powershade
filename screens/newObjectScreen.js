@@ -1,9 +1,8 @@
 import * as SQLite from "expo-sqlite";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { FAB, HelperText, Text, TextInput } from "react-native-paper";
-
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import colors from "../constants/colors";
 
@@ -34,6 +33,7 @@ export function NewObjectScreen({ route, navigation }) {
     zip: "",
     city: "",
     country: "",
+    order_number: "",
   });
 
   // Error flags for each input field. Used for input validation.
@@ -44,6 +44,7 @@ export function NewObjectScreen({ route, navigation }) {
     zip: false,
     city: false,
     country: false,
+    order_number: false,
   });
 
   // get the project data for filling the forms if editing a project
@@ -53,7 +54,7 @@ export function NewObjectScreen({ route, navigation }) {
         (tx) => {
           tx.executeSql(
             `SELECT 
-              id, customer, street, number, zip, city, country,
+              id, customer, street, number, zip, city, country, order_number,
               strftime("%d.%m.%Y %H:%M:%S", last_edit, 'localtime') AS last_edit,
               strftime("%d.%m.%Y %H:%M:%S", created, 'localtime') AS created
             FROM projects
@@ -79,7 +80,8 @@ export function NewObjectScreen({ route, navigation }) {
     project.number === "" ||
     project.zip === "" ||
     project.city === "" ||
-    project.country === "";
+    project.country === "" ||
+    project.order_number === "";
 
   /** Update or add a single value in the 'project' state object. No nesting.
    * @param {string} key - The key in the key-value pair
@@ -108,10 +110,10 @@ export function NewObjectScreen({ route, navigation }) {
     db.transaction((tx) => {
       tx.executeSql(
         `INSERT INTO projects (
-          customer, street, number, zip, city, country, last_edit, created
+          customer, street, number, zip, city, country, order_number, last_edit, created
           ) 
         VALUES
-          (?, ?, ?, ?, ?, ?, datetime("now"), datetime("now"));`,
+          (?, ?, ?, ?, ?, ?, ?, datetime("now"), datetime("now"));`,
         [
           project.customer,
           project.street,
@@ -119,6 +121,7 @@ export function NewObjectScreen({ route, navigation }) {
           project.zip,
           project.city,
           project.country,
+          project.order_number,
         ],
         null,
         (t, error) => {
@@ -139,6 +142,7 @@ export function NewObjectScreen({ route, navigation }) {
               zip = ?, 
               city = ?,
               country = ?,
+              order_number = ?,
               last_edit = datetime("now")
           WHERE id = ?;`,
         [
@@ -148,6 +152,7 @@ export function NewObjectScreen({ route, navigation }) {
           project.zip,
           project.city,
           project.country,
+          project.order_number,
           project.id,
         ],
         null,
@@ -159,187 +164,238 @@ export function NewObjectScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        label="Kunde"
-        mode="outlined"
-        value={project.customer}
-        error={inputErrors.customer}
-        onChangeText={(text) => {
-          setValue("customer", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "")
-            ? setError("customer", false)
-            : setError("customer", true);
-        }}
-        onBlur={() =>
-          project.customer === ""
-            ? setError("customer", true)
-            : setError("customer", false)
-        }
-        style={styles.fullTextInput}
-      />
-      <HelperText
-        type="error"
-        visible={inputErrors.customer}
-        style={inputErrors.customer ? null : { display: "none" }}
+    <View>
+      <ScrollView
+        contentContainerStyle={{ minHeight: "100%", paddingBottom: 50 }}
       >
-        Kunde darf nicht leer sein
-      </HelperText>
+        <View style={styles.container}>
+          <TextInput
+            label="Kunde"
+            mode="outlined"
+            value={project.customer}
+            error={inputErrors.customer}
+            onChangeText={(text) => {
+              setValue("customer", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "")
+                ? setError("customer", false)
+                : setError("customer", true);
+            }}
+            onBlur={() =>
+              project.customer === ""
+                ? setError("customer", true)
+                : setError("customer", false)
+            }
+            style={styles.fullTextInput}
+          />
+          <HelperText
+            type="error"
+            visible={inputErrors.customer}
+            style={inputErrors.customer ? null : { display: "none" }}
+          >
+            Kunde darf nicht leer sein
+          </HelperText>
 
-      <TextInput
-        id="street"
-        label="Straße"
-        mode="outlined"
-        value={project.street}
-        error={inputErrors.street}
-        onChangeText={(text) => {
-          setValue("street", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "") ? setError("street", false) : setError("street", true);
-        }}
-        onBlur={() =>
-          project.street === ""
-            ? setError("street", true)
-            : setError("street", false)
-        }
-        style={styles.wideTextInput}
-      />
+          <TextInput
+            id="street"
+            label="Straße"
+            mode="outlined"
+            value={project.street}
+            error={inputErrors.street}
+            onChangeText={(text) => {
+              setValue("street", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "")
+                ? setError("street", false)
+                : setError("street", true);
+            }}
+            onBlur={() =>
+              project.street === ""
+                ? setError("street", true)
+                : setError("street", false)
+            }
+            style={styles.wideTextInput}
+          />
 
-      <TextInput
-        id="number"
-        label="Nr."
-        mode="outlined"
-        keyboardType="number-pad"
-        value={project.number}
-        error={inputErrors.number}
-        onChangeText={(text) => {
-          setValue("number", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "") ? setError("number", false) : setError("number", true);
-        }}
-        onBlur={() =>
-          project.number === ""
-            ? setError("number", true)
-            : setError("number", false)
-        }
-        style={styles.smallTextInput}
-      />
+          <TextInput
+            id="number"
+            label="Nr."
+            mode="outlined"
+            keyboardType="number-pad"
+            value={project.number}
+            error={inputErrors.number}
+            onChangeText={(text) => {
+              setValue("number", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "")
+                ? setError("number", false)
+                : setError("number", true);
+            }}
+            onBlur={() =>
+              project.number === ""
+                ? setError("number", true)
+                : setError("number", false)
+            }
+            style={styles.smallTextInput}
+          />
 
-      <HelperText
-        type="error"
-        visible={inputErrors.street}
-        style={inputErrors.street ? styles.fullTextInput : { display: "none" }}
-      >
-        Straße darf nicht leer sein
-      </HelperText>
+          <HelperText
+            type="error"
+            visible={inputErrors.street}
+            style={
+              inputErrors.street ? styles.fullTextInput : { display: "none" }
+            }
+          >
+            Straße darf nicht leer sein
+          </HelperText>
 
-      <HelperText
-        type="error"
-        visible={inputErrors.number}
-        style={inputErrors.number ? styles.fullTextInput : { display: "none" }}
-      >
-        Nr. darf nicht leer sein
-      </HelperText>
+          <HelperText
+            type="error"
+            visible={inputErrors.number}
+            style={
+              inputErrors.number ? styles.fullTextInput : { display: "none" }
+            }
+          >
+            Nr. darf nicht leer sein
+          </HelperText>
 
-      <TextInput
-        id="zip"
-        label="PLZ"
-        mode="outlined"
-        keyboardType="number-pad"
-        value={project.zip}
-        error={inputErrors.zip}
-        onChangeText={(text) => {
-          setValue("zip", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "") && RegExp("^\\d{4,5}$").test(text)
-            ? setError("zip", false)
-            : setError("zip", true);
-        }}
-        onBlur={() =>
-          RegExp("^\\d{4,5}$").test(project.zip)
-            ? setError("zip", false)
-            : setError("zip", true)
-        }
-        style={styles.smallTextInput}
-      />
-      <TextInput
-        id="city"
-        label="Stadt"
-        mode="outlined"
-        value={project.city}
-        error={inputErrors.city}
-        onChangeText={(text) => {
-          setValue("city", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "") ? setError("city", false) : setError("city", true);
-        }}
-        onBlur={() =>
-          project.city === "" ? setError("city", true) : setError("city", false)
-        }
-        style={styles.wideTextInput}
-      />
-      <HelperText
-        type="error"
-        visible={inputErrors.zip}
-        style={inputErrors.zip ? styles.fullTextInput : { display: "none" }}
-      >
-        {project.zip === ""
-          ? "PLZ darf nicht leer sein"
-          : "PLZ muss aus 4-5 Zahlen bestehen"}
-      </HelperText>
+          <TextInput
+            id="zip"
+            label="PLZ"
+            mode="outlined"
+            keyboardType="number-pad"
+            value={project.zip}
+            error={inputErrors.zip}
+            onChangeText={(text) => {
+              setValue("zip", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "") && RegExp("^\\d{4,5}$").test(text)
+                ? setError("zip", false)
+                : setError("zip", true);
+            }}
+            onBlur={() =>
+              RegExp("^\\d{4,5}$").test(project.zip)
+                ? setError("zip", false)
+                : setError("zip", true)
+            }
+            style={styles.smallTextInput}
+          />
+          <TextInput
+            id="city"
+            label="Stadt"
+            mode="outlined"
+            value={project.city}
+            error={inputErrors.city}
+            onChangeText={(text) => {
+              setValue("city", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "") ? setError("city", false) : setError("city", true);
+            }}
+            onBlur={() =>
+              project.city === ""
+                ? setError("city", true)
+                : setError("city", false)
+            }
+            style={styles.wideTextInput}
+          />
+          <HelperText
+            type="error"
+            visible={inputErrors.zip}
+            style={inputErrors.zip ? styles.fullTextInput : { display: "none" }}
+          >
+            {project.zip === ""
+              ? "PLZ darf nicht leer sein"
+              : "PLZ muss aus 4-5 Zahlen bestehen"}
+          </HelperText>
 
-      <HelperText
-        type="error"
-        visible={inputErrors.city}
-        style={inputErrors.city ? styles.fullTextInput : { display: "none" }}
-      >
-        Stadt darf nicht leer sein
-      </HelperText>
+          <HelperText
+            type="error"
+            visible={inputErrors.city}
+            style={
+              inputErrors.city ? styles.fullTextInput : { display: "none" }
+            }
+          >
+            Stadt darf nicht leer sein
+          </HelperText>
 
-      <TextInput
-        id="country"
-        label="Land"
-        mode="outlined"
-        value={project.country}
-        error={inputErrors.country}
-        onChangeText={(text) => {
-          setValue("country", text);
-          // if Text is entered, remove the empty field warning
-          !(text === "")
-            ? setError("country", false)
-            : setError("country", true);
-        }}
-        onBlur={() =>
-          project.country === ""
-            ? setError("country", true)
-            : setError("country", false)
-        }
-        style={styles.fullTextInput}
-      />
+          <TextInput
+            id="country"
+            label="Land"
+            mode="outlined"
+            value={project.country}
+            error={inputErrors.country}
+            onChangeText={(text) => {
+              setValue("country", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "")
+                ? setError("country", false)
+                : setError("country", true);
+            }}
+            onBlur={() =>
+              project.country === ""
+                ? setError("country", true)
+                : setError("country", false)
+            }
+            style={styles.fullTextInput}
+          />
+          <HelperText
+            type="error"
+            visible={inputErrors.country}
+            style={
+              inputErrors.country ? styles.fullTextInput : { display: "none" }
+            }
+          >
+            Land darf nicht leer sein
+          </HelperText>
 
-      <HelperText
-        type="error"
-        visible={inputErrors.country}
-        style={inputErrors.country ? styles.fullTextInput : { display: "none" }}
-      >
-        Land darf nicht leer sein
-      </HelperText>
+          <TextInput
+            id="order_number"
+            label="Auftragsposition"
+            mode="outlined"
+            value={project.order_number}
+            error={inputErrors.order_number}
+            onChangeText={(text) => {
+              setValue("order_number", text);
+              // if Text is entered, remove the empty field warning
+              !(text === "")
+                ? setError("order_number", false)
+                : setError("order_number", true);
+            }}
+            onBlur={() =>
+              project.order_number === ""
+                ? setError("order_number", true)
+                : setError("order_number", false)
+            }
+            style={styles.fullTextInput}
+          />
+          <HelperText
+            type="error"
+            visible={inputErrors.order_number}
+            style={
+              inputErrors.order_number
+                ? styles.fullTextInput
+                : { display: "none" }
+            }
+          >
+            Auftragsposition darf nicht leer sein
+          </HelperText>
 
-      {project.last_edit === null || project.last_edit.length === 0 ? null : (
-        <View style={styles.timestampContainer}>
-          <View style={styles.timestamp}>
-            <Text>Letzte Änderung:</Text>
-            <Text>{project.last_edit}</Text>
-          </View>
+          {project.last_edit === null ||
+          project.last_edit.length === 0 ? null : (
+            <View style={styles.timestampContainer}>
+              <View style={styles.timestamp}>
+                <Text>Letzte Änderung:</Text>
+                <Text>{project.last_edit}</Text>
+              </View>
 
-          <View style={styles.timestamp}>
-            <Text>Erstellt:</Text>
-            <Text>{project.created}</Text>
-          </View>
+              <View style={styles.timestamp}>
+                <Text>Erstellt:</Text>
+                <Text>{project.created}</Text>
+              </View>
+            </View>
+          )}
         </View>
-      )}
-
+      </ScrollView>
       <FAB
         style={styles.fab}
         disabled={incomplete}
