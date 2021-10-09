@@ -1,3 +1,6 @@
+// TODO: bluetooth scan scans forever if no device is found.
+// TODO: implement stopping after some time scanning without result
+
 import { BleErrorCode, BleManager } from "react-native-ble-plx";
 import { set } from "react-native-reanimated";
 
@@ -101,7 +104,7 @@ export async function logChar(deviceID, serviceUUID, characteristicUUID) {
   return value;
 }
 
-export async function logAllChars(setValue) {
+export async function logAllChars(setValues) {
   measurementValuesUUIDs = [
     bleServices.measurementValues.characteristics.latitude.uuid,
     bleServices.measurementValues.characteristics.longitude.uuid,
@@ -110,14 +113,17 @@ export async function logAllChars(setValue) {
     bleServices.measurementValues.characteristics.inclination.uuid,
   ];
 
-  valueKeys = ["latitude", "longitude", "altitude", "azimuth", "inclination"];
+  values = [];
 
-  measurementValuesUUIDs.forEach(async (charUUID, index) => {
-    setValue(
-      valueKeys[index],
-      await logChar(bleDeviceID, bleServices.measurementValues.uuid, charUUID)
+  for (const uuid of measurementValuesUUIDs) {
+    values.push(
+      await logChar(bleDeviceID, bleServices.measurementValues.uuid, uuid)
     );
-  });
+  }
+
+  // TODO: refactor this
+  // latitude, longitude, altitude, azimuth, inclination
+  setValues(values[0], values[1], values[2], values[3], values[4]);
 }
 
 export async function startMeasurement() {
@@ -140,14 +146,14 @@ export async function abortMeasurement() {
   return;
 }
 
-export async function monitorMeasurementStatus(setStatus, setValue) {
+export async function monitorMeasurementStatus(setStatus, setValues) {
   let value = "init";
 
   subscription = await bleDevice.monitorCharacteristicForService(
     bleServices.measurementStatus.uuid,
     bleServices.measurementStatus.characteristics.status.uuid,
     // this gets called every time the characteristic changes
-    (error, char) => {
+    async (error, char) => {
       if (
         error !== null &&
         error.errorCode !== BleErrorCode.OperationCancelled
@@ -160,7 +166,7 @@ export async function monitorMeasurementStatus(setStatus, setValue) {
         console.log(`[INFO] BLE measurementStatus change to ${value}`);
 
         if (value === "done") {
-          logAllChars(setValue);
+          await logAllChars(setValues);
         }
 
         setStatus(value);
@@ -259,8 +265,24 @@ export async function scanAndConnect() {
               reject("Bluetooth scanAndConnect error: " + error.message);
             }
 
+            // ! temporarily disabled because of long timeout warning
+            // let timeout = setTimeout(async () => {
+            //   await bleManager.stopDeviceScan();
+            //   console.log(
+            //     "[INFO] Bluetooth scanAndConnect timeout. Device not found."
+            //   );
+            //   alarm(
+            //     "Messgerät nicht gefunden." +
+            //       "Ist das Gerät eingeschaltet und in der Nähe ? "
+            //   );
+            //   resolve(false);
+            // }, 300000);
+
             if (device.id === bleDeviceID) {
               bleManager.stopDeviceScan(); // only one device needed
+
+              // ! temporarily disabled because of long timeout warning
+              // clearTimeout(timeout);
 
               // Proceed with connection.
               device

@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Appbar, IconButton, List, Menu } from "react-native-paper";
 import * as SQLite from "expo-sqlite";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Appbar, IconButton, List, Menu } from "react-native-paper";
 
 import colors from "../constants/colors";
 

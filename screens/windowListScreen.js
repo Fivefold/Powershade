@@ -162,7 +162,7 @@ function Windows(props) {
   }, [props.searchQuery, props.searchBarVisible]);
 
   if (props.noProjects === true) {
-    return <Headline style={{ padding: 13 }}>Keine Projekte angelegt</Headline>;
+    return <Headline style={{ padding: 13 }}>Keine Objekte angelegt</Headline>;
   } else if (windows === null || windows.length === 0) {
     return <Headline style={{ padding: 13 }}>Keine Fenster angelegt</Headline>;
   } else if (visibleWindows === null || visibleWindows.length === 0) {

@@ -3,18 +3,15 @@
 
 import * as SQLite from "expo-sqlite";
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
   Caption,
-  Dialog,
   FAB,
   HelperText,
   IconButton,
   List,
-  Paragraph,
-  Portal,
   Subheading,
   Text,
   TextInput,
@@ -34,40 +31,34 @@ import { StateContext } from "../modules/Context";
 
 const db = SQLite.openDatabase("powershade.db");
 
-const DeleteDialog = (props) => {
-  return (
-    <View>
-      <Portal>
-        <Dialog visible={props.visible} onDismiss={props.hideDialog}>
-          <Dialog.Title>Löschen</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Wirklich Messung löschen?</Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button style={{ minWidth: "20%" }} onPress={props.hideDialog}>
-              Nein
-            </Button>
-            <Button style={{ minWidth: "20%" }} onPress={props.delMeasurement}>
-              Ja
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-    </View>
-  );
-};
-
 /** Input screen for creating a new window. Inputs for various metadata (name,
  * dimensions, comments) as well as a button with a redirect to a QR scanner and
  * a button to initiate the measurements.
  */
 export function NewWindowScreen({ route, navigation }) {
   const {
-    bluetoothPaired,
-    setBluetoothPaired,
+    bluetoothConnected,
+    setBluetoothConnected,
     measurementStatus,
     setMeasurementStatus,
   } = React.useContext(StateContext);
+
+  // either new window values or filled with initial data during window editing.
+  // Compared when leaving the screen to check if inputs have been changed
+  const [windowInitialState, setWindowInitialState] = React.useState({
+    name: "",
+    width: "",
+    height: "",
+    sensorCorner: "lowerRight",
+    sensorPosH: "15",
+    sensorPosV: "10",
+    latitude: null,
+    longitude: null,
+    altitude: null,
+    azimuth: null,
+    inclination: null,
+    annotations: "",
+  });
 
   // The active project
   const [project, setProject] = React.useState({
@@ -78,17 +69,8 @@ export function NewWindowScreen({ route, navigation }) {
     zip: "",
     city: "",
   });
-  // The data of the newly created window.
-  const [window, setWindow] = React.useState({
-    name: "",
-    width: "",
-    height: "",
-    sensorCorner: "lowerRight",
-    sensorPosH: "15",
-    sensorPosV: "10",
-    qr: "",
-    annotations: "",
-  });
+  // The data of the window.
+  const [window, setWindow] = React.useState(windowInitialState);
 
   /* Temporary state to store input field texts during entry.
    * The real state (window) is updated onBlur.
@@ -109,19 +91,48 @@ export function NewWindowScreen({ route, navigation }) {
     sensorPosV: false,
   });
 
-  // State of measurement delete dialog
-  const [dialogVisible, setDialogVisible] = React.useState(false);
-
-  const showDialog = () => setDialogVisible(true);
-  const hideDialog = () => setDialogVisible(false);
-
   let inputError =
     Object.values(inputErrors).includes(true) || window.name === "";
+
+  let noUnsavedChanges = Boolean(
+    JSON.stringify(window) === JSON.stringify(windowInitialState) &&
+      measurementStatus !== "running"
+  );
 
   // Checks if a number is a valid florating point number, either using
   // a point . or a comma ,
   const fpNumberDot = RegExp("^([0-9]+([.][0-9]*)?|[.][0-9]+)$");
   const fpNumberComma = RegExp("^([0-9]+([,][0-9]*)?|[,][0-9]+)$");
+
+  // Warn if the user wants to go back without saving changes
+  React.useEffect(
+    () =>
+      navigation.addListener("beforeRemove", (e) => {
+        if (noUnsavedChanges) {
+          // If we don't have unsaved changes, then we don't need to do anything
+          return;
+        }
+
+        e.preventDefault();
+
+        // Prompt the user before leaving the screen
+        Alert.alert(
+          "Änderungen verwerfen?",
+          "Sollen die Änderungen wirklich verworfen werden?",
+          [
+            { text: "hier bleiben", style: "cancel", onPress: () => {} },
+            {
+              text: "Verwerfen",
+              style: "destructive",
+              // If the user confirmed, then we dispatch the action we blocked earlier
+              // This will continue the action that had triggered the removal of the screen
+              onPress: () => navigation.dispatch(e.data.action),
+            },
+          ]
+        );
+      }),
+    [navigation, noUnsavedChanges]
+  );
 
   /** Update or add a single value in the 'window' state object. No nesting.
    * @param {string} key - The key in the key-value pair
@@ -144,6 +155,30 @@ export function NewWindowScreen({ route, navigation }) {
           [key]: value,
         }));
     }
+  };
+
+  /** Update or add all measurementvalues in the 'window' state object.
+   * @param {string} latitude - latitude,
+   * @param {string} longitude - longitude,
+   * @param {string} altitude - altitude,
+   * @param {string} azimuth - azimuth,
+   * @param {string} inclination - inclination
+   */
+  const setMeasurementValues = (
+    latitude,
+    longitude,
+    altitude,
+    azimuth,
+    inclination
+  ) => {
+    setWindow((oldState) => ({
+      ...oldState,
+      ["latitude"]: latitude,
+      ["longitude"]: longitude,
+      ["altitude"]: altitude,
+      ["azimuth"]: azimuth,
+      ["inclination"]: inclination,
+    }));
   };
 
   /** Update or add a single value in the 'temp' state object. No nesting.
@@ -221,8 +256,7 @@ export function NewWindowScreen({ route, navigation }) {
             [route.params.windowId],
             (_, { rows: { _array } }) => {
               setWindow(_array[0]);
-              // set bluetooth measuring status
-              _array[0].altitude === null ? null : setMeasurementStatus("done");
+              setWindowInitialState(_array[0]);
               setTemp({
                 width: String(_array[0].width),
                 height: String(_array[0].height),
@@ -270,11 +304,11 @@ export function NewWindowScreen({ route, navigation }) {
           window.sensorCorner,
           window.sensorPosH,
           window.sensorPosV,
-          measurementStatus === "done" ? window.latitude : null,
-          measurementStatus === "done" ? window.longitude : null,
-          measurementStatus === "done" ? window.altitude : null,
-          measurementStatus === "done" ? window.azimuth : null,
-          measurementStatus === "done" ? window.inclination : null,
+          window.latitude,
+          window.longitude,
+          window.altitude,
+          window.azimuth,
+          window.inclination,
           route.params.qr.data,
           window.annotations,
         ],
@@ -314,11 +348,11 @@ export function NewWindowScreen({ route, navigation }) {
           window.sensorCorner,
           window.sensorPosH,
           window.sensorPosV,
-          measurementStatus === "done" ? window.latitude : null,
-          measurementStatus === "done" ? window.longitude : null,
-          measurementStatus === "done" ? window.altitude : null,
-          measurementStatus === "done" ? window.azimuth : null,
-          measurementStatus === "done" ? window.inclination : null,
+          window.latitude,
+          window.longitude,
+          window.altitude,
+          window.azimuth,
+          window.inclination,
           window.qr,
           window.annotations,
           route.params.windowId,
@@ -341,27 +375,22 @@ export function NewWindowScreen({ route, navigation }) {
 
   // delete Bluetooth measurements
   const delMeasurement = () => {
-    if (route.params.windowId) {
-      //Editing mode:
-      db.transaction((tx) => {
-        tx.executeSql(
-          `UPDATE windows
-          SET last_edit = datetime("now"),
-          latitude = ?, 
-          longitude = ?, 
-          altitude = ?, 
-          azimuth = ?, 
-          inclination = ? 
-          WHERE id = ?;`,
-          [null, null, null, null, null, route.params.windowId],
-          null,
-          (t, error) => {
-            console.log(error);
-          }
-        );
-      });
-    }
-    setDialogVisible(false);
+    // Prompt the user before deleting the measurements
+    Alert.alert(
+      "Messung löschen?",
+      "Soll die Messung wirklich gelöscht werden?",
+      [
+        { text: "abbrechen", style: "cancel", onPress: () => {} },
+        {
+          text: "löschen",
+          style: "destructive",
+
+          onPress: () => {
+            setMeasurementValues(null, null, null, null, null);
+          },
+        },
+      ]
+    );
   };
 
   /** Adds the abbreviated cardinal direction to the azimuth string.
@@ -414,7 +443,7 @@ export function NewWindowScreen({ route, navigation }) {
 
   // measurementContainer for the bluetooth measurements
   let measurementContainer;
-  if (window.azimuth !== undefined && window.azimuth !== null) {
+  if (window.inclination !== undefined && window.inclination !== null) {
     measurementContainer = (
       <View style={styles.measurementResults}>
         <View>
@@ -454,7 +483,7 @@ export function NewWindowScreen({ route, navigation }) {
               icon="delete"
               color={colors.white.high_emph}
               style={{ margin: 0, padding: 0 }}
-              onPress={() => showDialog}
+              onPress={() => delMeasurement()}
             />
           </View>
         </View>
@@ -484,6 +513,17 @@ export function NewWindowScreen({ route, navigation }) {
         </View>
       </View>
     );
+  } else if (bluetoothConnected === false) {
+    measurementContainer = (
+      <Button
+        icon="bluetooth"
+        mode="contained"
+        color={colors.secondary._600}
+        onPress={() => navigation.navigate("Gerätestatus")}
+      >
+        Mit Messgerät verbinden
+      </Button>
+    );
   } else {
     measurementContainer = (
       <Button
@@ -498,7 +538,10 @@ export function NewWindowScreen({ route, navigation }) {
           await startMeasurement();
 
           // get notified once the measurement is complete
-          await monitorMeasurementStatus(setMeasurementStatus, setValue);
+          await monitorMeasurementStatus(
+            setMeasurementStatus,
+            setMeasurementValues
+          );
         }}
       >
         Messung starten
@@ -557,6 +600,24 @@ export function NewWindowScreen({ route, navigation }) {
           </View>
         </View>
         <View style={styles.dimContainer}>
+          <Button
+            onPress={() => {
+              console.log(JSON.stringify(window));
+            }}
+          >
+            log window {measurementStatus}
+          </Button>
+          <Button
+            onPress={() => {
+              console.log(JSON.stringify(windowInitialState));
+            }}
+          >
+            log windowInitial
+            {String(noUnsavedChanges)}
+          </Button>
+          <Text>
+            {windowInitialState.name === "" ? "null" : windowInitialState.name}
+          </Text>
           <Caption style={styles.dimCaption}>FENSTERABMESSUNGEN</Caption>
           <TextInput
             label="Breite"
@@ -713,12 +774,6 @@ export function NewWindowScreen({ route, navigation }) {
           )}
         </View>
       </ScrollView>
-      <DeleteDialog
-        visible={dialogVisible}
-        showDialog={() => setDialogVisible(true)}
-        hideDialog={() => setDialogVisible(false)}
-        delMeasurement={() => delMeasurement()}
-      />
       <View style={styles.fabView}>
         <FAB
           style={styles.fab}
@@ -726,7 +781,7 @@ export function NewWindowScreen({ route, navigation }) {
           icon="content-save"
           label="Speichern"
           onPress={() => {
-            //console.log("Pressed save window");
+            navigation.removeListener("beforeRemove"); // no confirmation dialog
             route.params.windowId ? update() : add(); // editing or creating?
             navigation.navigate("windowList");
           }}
