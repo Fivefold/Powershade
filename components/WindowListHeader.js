@@ -123,7 +123,7 @@ export const WindowListHeader = (props) => {
           <IconButton
             icon="download"
             color={colors.white.high_emph}
-            onPress={() => console.log("Pressed download")}
+            onPress={() => props.navigation.navigate("dataExport")}
           />
         </View>
       }

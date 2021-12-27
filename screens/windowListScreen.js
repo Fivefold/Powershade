@@ -277,6 +277,7 @@ export function windowListScreen({ navigation }) {
         <WindowListHeader
           searchBarVisible={searchBarVisible}
           toggleSearchBar={toggleSearchBar}
+          navigation={navigation}
         />
       ),
     });
