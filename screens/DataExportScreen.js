@@ -41,7 +41,15 @@ function Projects(props) {
     props.navigation.addListener("focus", () => {
       db.transaction((tx) => {
         tx.executeSql(
-          `select id, customer, street, number, zip, city from projects;`,
+          `SELECT 
+            id,
+            customer,
+            street,
+            number,
+            zip,
+            city,
+            order_number
+          FROM projects;`,
           [],
           (_, { rows: { length, _array } }) => {
             // if there is only one project, automatically set it as active
@@ -286,55 +294,57 @@ export function DataExportScreen({ navigation }) {
     let exportProjects = projects.filter(filterProjectsByID);
     //console.log(exportProjects);
 
-    exportProjects.map(async ({ id, customer, street, number, zip, city }) => {
-      let exportWindows = windows.filter((window) =>
-        filterWindowsByProject(window, id)
-      );
-      //console.log(JSON.stringify(exportWindows));
+    exportProjects.map(
+      async ({ id, customer, street, number, zip, city, order_number }) => {
+        let exportWindows = windows.filter((window) =>
+          filterWindowsByProject(window, id)
+        );
+        //console.log(JSON.stringify(exportWindows));
 
-      /* Create a filename starting with a timestamp and then adding */
-      let currentDate = new Date();
-      let cDay = currentDate.getDate();
-      cDay = (cDay < 10 ? "0" : "") + cDay;
-      let cMonth = currentDate.getMonth() + 1;
-      cMonth = (cMonth < 10 ? "0" : "") + cMonth;
-      let cYear = currentDate.getFullYear();
-      let timestamp = `${cYear}${cMonth}${cDay}`;
+        /* Create a filename starting with a timestamp and then adding */
+        let currentDate = new Date();
+        let cDay = currentDate.getDate();
+        cDay = (cDay < 10 ? "0" : "") + cDay;
+        let cMonth = currentDate.getMonth() + 1;
+        cMonth = (cMonth < 10 ? "0" : "") + cMonth;
+        let cYear = currentDate.getFullYear();
+        let timestamp = `${cYear}${cMonth}${cDay}`;
 
-      // Windows does not allow slashes in filenames. Convert them to _
-      let validNumber = number.replace(/\//g, "_");
+        // Windows does not allow slashes in filenames. Convert them to _
+        let validNumber = number.replace(/\//g, "_");
 
-      // Extract last name
-      let validCustomer = customer.match(/\w+$/);
-      // Change spaces to hyphens (-)
-      let validStreet = street.replace(/ /g, "-");
-      let validCity = city.replace(/ /g, "-");
-      let filename =
-        `${timestamp}_${validCustomer}_${validStreet}_${validNumber}` +
-        `_${zip}_${validCity}`;
+        // Extract last name
+        let validCustomer = customer.match(/\w+$/);
+        // Change spaces to hyphens (-)
+        let validStreet = street.replace(/ /g, "-");
+        let validCity = city.replace(/ /g, "-");
+        let filename =
+          `${timestamp}_${validCustomer}_${validStreet}_${validNumber}` +
+          `_${zip}_${validCity}_${order_number}`;
 
-      let header = Object.keys(exportWindows[0]);
-      // handling null values
-      let replacer = (key, value) => (value === null ? "" : value);
-      let csv = [
-        header.join(","), // header row
-        ...exportWindows.map((row) =>
-          header
-            .map((fieldName) => JSON.stringify(row[fieldName], replacer))
-            .join(",")
-        ),
-      ].join("\r\n");
+        let header = Object.keys(exportWindows[0]);
+        // handling null values
+        let replacer = (key, value) => (value === null ? "" : value);
+        let csv = [
+          header.join(","), // header row
+          ...exportWindows.map((row) =>
+            header
+              .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+              .join(",")
+          ),
+        ].join("\r\n");
 
-      let fileUri = await StorageAccessFramework.createFileAsync(
-        uri,
-        filename,
-        "text/csv"
-      );
+        let fileUri = await StorageAccessFramework.createFileAsync(
+          uri,
+          filename,
+          "text/csv"
+        );
 
-      await FileSystem.writeAsStringAsync(fileUri, csv, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-    });
+        await FileSystem.writeAsStringAsync(fileUri, csv, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
+      }
+    );
 
     return;
   };
