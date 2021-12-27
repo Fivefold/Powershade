@@ -22,7 +22,7 @@ import colors from "../constants/colors";
 import { NewWindowScreen } from "./NewWindowScreen";
 import { QrScanScreen } from "./QrScanScreen";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 const WindowStack = createStackNavigator();
 
 export function windowStackNavigator() {

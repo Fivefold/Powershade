@@ -5,7 +5,7 @@ import { Appbar, IconButton, List, Menu } from "react-native-paper";
 
 import colors from "../constants/colors";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 
 // Component that shows the active project and number of assigned windows
 function ActiveProject() {

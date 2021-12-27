@@ -34,7 +34,7 @@
     "react-native-reanimated": "~2.2.0",
     "react-native-safe-area-context": "3.2.0",
     "react-native-screens": "~3.4.0",
-    "react-native-unimodules": "~0.14.5",
+    "react-native-unimodules": "0.14.10",
     "react-native-web": "~0.13.12",
     "sharp-cli": "^1.15.0"
   },
@@ -42,18 +42,18 @@
     "@babel/core": "~7.9.0"
   },
   "private": true,
-  "name": "Powershade",
+  "name": "WindowManager",
   "version": "1.0.0",
   "importSort": {
-  ".js, .jsx, .es6, .es": {
-    "parser": "babylon",
-    "style": "module-scoped",
-    "options": {}
-  },
-  ".ts, .tsx": {
-    "parser": "typescript",
-    "style": "module-scoped",
-    "options": {}
+    ".js, .jsx, .es6, .es": {
+      "parser": "babylon",
+      "style": "module-scoped",
+      "options": {}
+    },
+    ".ts, .tsx": {
+      "parser": "typescript",
+      "style": "module-scoped",
+      "options": {}
+    }
   }
-}
 }

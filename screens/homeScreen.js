@@ -22,7 +22,7 @@ import colors from "../constants/colors";
 import { DataExportScreen } from "./DataExportScreen";
 import { NewObjectScreen } from "./NewObjectScreen";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 
 
 

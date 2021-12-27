@@ -6,7 +6,7 @@ import { FAB, HelperText, Text, TextInput } from "react-native-paper";
 
 import colors from "../constants/colors";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 
 /** Converts the values in a (nested) object to strings.
  * @param {object} o - The object whose values should be converted

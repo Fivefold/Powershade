@@ -19,7 +19,7 @@ import {
 import { CustomSnackbar } from "../components/CustomSnackbar";
 import colors from "../constants/colors";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 
 const ObjectCheckbox = (props) => {
   return (

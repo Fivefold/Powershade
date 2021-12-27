@@ -29,7 +29,7 @@ import {
 } from "../modules/BleManager";
 import { StateContext } from "../modules/Context";
 
-const db = SQLite.openDatabase("powershade.db");
+const db = SQLite.openDatabase("windowManager.db");
 
 /** Input screen for creating a new window. Inputs for various metadata (name,
  * dimensions, comments) as well as a button with a redirect to a QR scanner and

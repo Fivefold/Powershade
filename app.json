@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Powershade",
-    "slug": "Powershade",
+    "name": "WindowManager",
+    "slug": "WindowManager",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -36,7 +36,7 @@
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN"
       ],
-      "package": "com.fivefold.Powershade"
+      "package": "com.fivefold.WindowManager"
     },
     "web": {
       "favicon": "./assets/favicon.png"

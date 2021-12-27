@@ -24,7 +24,7 @@ import {
   windowStackNavigator,
 } from "./screens/WindowListScreen";
 
-export const db = SQLite.openDatabase("powershade.db");
+export const db = SQLite.openDatabase("windowManager.db");
 const Tab = createMaterialBottomTabNavigator();
 
 export const theme = {
